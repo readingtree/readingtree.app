@@ -1,0 +1,11 @@
+(library
+ (name readingtree)
+ (libraries
+   lwt
+   piaf
+   yojson
+   base64)
+ (preprocess
+  (pps lwt_ppx)))
+
+(env (dev (flags (:standard -w -69))))
