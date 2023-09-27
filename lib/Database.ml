@@ -54,20 +54,20 @@ let create_db ~name =
   in
   response >>|= encode_response ~encoding:Json
 
-let find_list ~id =
+let find_doc ~db ~id =
   let* response =
     Http.post
       ~headers:standard_headers
       ~body:(Body.of_string @@ Printf.sprintf {json|{_id: %s}|json} id)
-      (Uri.of_string (db_uri ^ "/lists/_find"))
+      (Uri.of_string (db_uri ^ "/" ^ db ^ "/_find"))
   in
   response >>|= encode_response ~encoding:Json
 
-let save_list ~list =
+let save_doc ~db ~doc =
   let* response =
     Http.put
       ~headers:standard_headers
-      ~body:(Body.of_string @@ Yojson.Safe.to_string list)
-      (Uri.of_string (db_uri ^ "/lists/"))
+      ~body:(Body.of_string @@ Yojson.Safe.to_string doc)
+      (Uri.of_string (db_uri ^ "/" ^ db))
   in
   response >>|= encode_response ~encoding:Json
