@@ -15,7 +15,9 @@ depends: [
   "dream"
   "lwt"
   "cmdliner"
-  "http-lwt-client"
+  "yojson"
+  "piaf"
+  "base64"
   "odoc" {with-doc}
 ]
 build: [
