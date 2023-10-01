@@ -8,7 +8,7 @@ let main () =
   @@ set_secret (to_base64url (random 32))
   @@ cookie_sessions
   @@ router
-       [ get "/" ( fun _req -> html ~status:`OK "Foo Bar" ) ]
+       [ get "/" Handler.index_handler ]
 
 (** Execute the application on the main-thread, migrating all of our DB migrations first. *)
 let () = main () |> Lwt.return |> Lwt_main.run

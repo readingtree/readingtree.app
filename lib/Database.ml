@@ -36,15 +36,20 @@ let encode_response ~(encoding : encoding_type) (res : Piaf.Response.t) =
   if Status.is_successful res.status then
     let+ body = Body.to_string res.body in
     Result.map_error Error.to_string (
-        body >|=
+        body >|= (
           fun b ->
-          Ok( match encoding with
-              | Json -> Json_response( Yojson.Safe.from_string b )
-              | Text -> Text_response( b )
-            )
+          match encoding with
+          | Json ->
+             begin
+               match Json.from_string b with
+               | Ok json -> Ok (Json_response json)
+               | Error e -> Error (`Exn e)
+             end
+          | Text -> Ok (Text_response b)
+        )
       )
   else
-    Lwt.return ( Error(Status.to_string res.status) )
+    Lwt.return (Error (Status.to_string res.status))
 
 let create_db ~name =
   let* response =
@@ -67,7 +72,7 @@ let save_doc ~db ~doc =
   let* response =
     Http.put
       ~headers:standard_headers
-      ~body:(Body.of_string @@ Yojson.Safe.to_string doc)
+      ~body:(Body.of_string @@ Json.to_string doc)
       (Uri.of_string (db_uri ^ "/" ^ db))
   in
   response >>|= encode_response ~encoding:Json

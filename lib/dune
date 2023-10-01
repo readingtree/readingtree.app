@@ -1,6 +1,7 @@
 (library
  (name readingtree)
  (libraries
+   dream
    lwt
    piaf
    yojson

@@ -1,6 +1,6 @@
 (executable
  (public_name readingtree.exe)
- (name main)
+ (name application)
  (libraries
    dream
    lwt
