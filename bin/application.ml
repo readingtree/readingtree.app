@@ -10,5 +10,4 @@ let main () =
   @@ router
        [ get "/" Handler.index_handler ]
 
-(** Execute the application on the main-thread, migrating all of our DB migrations first. *)
-let () = main () |> Lwt.return |> Lwt_main.run
+let () = main ()
