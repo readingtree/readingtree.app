@@ -1,9 +1,10 @@
 (library
  (name readingtree)
+ (public_name readingtree)
  (libraries
    dream
    lwt
-   piaf
+   hyper
    yojson
    base64)
  (preprocess

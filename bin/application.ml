@@ -1,13 +1,11 @@
-open Readingtree (* Import all of the functions in the Application module *)
+open Readingtree
 
 (** Web endpoint declaration *)
-let main () =
-  let open Dream in (* Locally import all of the Dream web framework functions *)
-  run
-  @@ logger
-  @@ set_secret (to_base64url (random 32))
-  @@ cookie_sessions
-  @@ router
-       [ get "/" Handler.index_handler ]
-
-let () = main ()
+let () =
+  let module D = Dream in
+  D.run
+  @@ D.logger
+  @@ D.set_secret (D.to_base64url (D.random 32))
+  @@ D.cookie_sessions
+  @@ D.router
+       [ D.get "/" Handler.index_handler ]

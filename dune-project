@@ -26,8 +26,8 @@
    lwt
    cmdliner
    yojson
-   piaf
    base64
+   hyper
  )
  (tags
   (web application reading)))

@@ -16,8 +16,8 @@ depends: [
   "lwt"
   "cmdliner"
   "yojson"
-  "piaf"
   "base64"
+  "hyper"
   "odoc" {with-doc}
 ]
 build: [

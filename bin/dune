@@ -1,5 +1,5 @@
 (executable
- (public_name readingtree.exe)
+ (public_name application.exe)
  (name application)
  (libraries
    dream

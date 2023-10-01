@@ -1,7 +1,4 @@
 open Lwt.Syntax
-open Piaf
-
-module Http = Client.Oneshot
 
 type encoding_type = Json | Text
 type couch_response =
@@ -12,7 +9,7 @@ let ( >|= ) = Result.bind
 let ( >>|= ) = fun a b ->
   match a with
   | Ok t -> b t
-  | Error e -> Lwt.return (Error ( Error.to_string e ))
+  | Error _ as e -> Lwt.return (e)
 
 let db_uri =
   match Sys.getenv_opt "COUCHDB_URI" with
@@ -32,47 +29,48 @@ let standard_headers =
   ; ("Accept", "application/json")
   ; ("Authorization", "Basic " ^ auth_credential) ]
 
-let encode_response ~(encoding : encoding_type) (res : Piaf.Response.t) =
-  if Status.is_successful res.status then
-    let+ body = Body.to_string res.body in
-    Result.map_error Error.to_string (
-        body >|= (
-          fun b ->
-          match encoding with
-          | Json ->
-             begin
-               match Json.from_string b with
-               | Ok json -> Ok (Json_response json)
-               | Error e -> Error (`Exn e)
-             end
-          | Text -> Ok (Text_response b)
-        )
-      )
+exception Encoding_error of string
+
+let make_request =
+  Http.request
+    ~headers:standard_headers
+
+let encode_response ~(encoding : encoding_type) response =
+  let status = Hyper.status response in
+  if Hyper.is_successful status then
+    let+ body = Hyper.body response in
+    match encoding with
+    | Json ->
+       begin
+         match Json.from_string body with
+         | Ok json -> Ok (Json_response json)
+         | Error e -> Error (Encoding_error (Printexc.to_string e))
+       end
+    | Text -> Ok (Text_response body)
   else
-    Lwt.return (Error (Status.to_string res.status))
+    Lwt.return (Error (Encoding_error (Hyper.status_to_string status)))
 
 let create_db ~name =
-  let* response =
-    Http.put
-      ~headers:standard_headers
-      (Uri.of_string (db_uri ^ "/" ^ name))
-  in
+  let request = make_request ~meth:`PUT (db_uri ^ "/" ^ name) in
+  let* response = Http.run request in
   response >>|= encode_response ~encoding:Json
 
 let find_doc ~db ~id =
-  let* response =
-    Http.post
-      ~headers:standard_headers
-      ~body:(Body.of_string @@ Printf.sprintf {json|{_id: %s}|json} id)
-      (Uri.of_string (db_uri ^ "/" ^ db ^ "/_find"))
+  let request =
+    make_request
+      ~body:(Json.to_string (`Assoc [("_id", `String id)]))
+      ~meth:`POST
+      (db_uri ^ "/" ^ db ^ "/_find")
   in
+  let* response = Http.run request in
   response >>|= encode_response ~encoding:Json
 
 let save_doc ~db ~doc =
-  let* response =
-    Http.put
-      ~headers:standard_headers
-      ~body:(Body.of_string @@ Json.to_string doc)
-      (Uri.of_string (db_uri ^ "/" ^ db))
+  let request =
+    make_request
+      ~meth:`PUT
+      ~body:(Json.to_string doc)
+      (db_uri ^ "/" ^ db)
   in
+  let* response = Http.run request in
   response >>|= encode_response ~encoding:Json
