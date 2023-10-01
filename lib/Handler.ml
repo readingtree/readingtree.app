@@ -1,2 +1,1 @@
-let index_handler _request =
-  Dream.html "Hello World"
+let index_handler request = Dream.html @@ View.Index.render request

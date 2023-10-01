@@ -28,6 +28,7 @@
    yojson
    base64
    hyper
+   tyxml
  )
  (tags
   (web application reading)))

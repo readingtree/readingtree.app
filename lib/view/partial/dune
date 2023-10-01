@@ -1,0 +1,4 @@
+(library
+ (name partial)
+ (public_name readingtree.partial)
+ (libraries dream tyxml ptime.clock.os))

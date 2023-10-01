@@ -1,0 +1,11 @@
+(library
+ (public_name readingtree.view)
+ (name view)
+ (libraries
+   dream
+   lwt
+   tyxml
+   readingtree.partial
+   readingtree.layout)
+ (preprocess
+   (pps lwt_ppx)))

@@ -6,7 +6,9 @@
    lwt
    hyper
    yojson
-   base64)
+   base64
+   readingtree.view
+ )
  (preprocess
   (pps lwt_ppx)))
 
