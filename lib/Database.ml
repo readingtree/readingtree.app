@@ -67,14 +67,22 @@ let find_doc ~db ~id () =
   response >>|= encode_response ~encoding:Json
 
 let find_docs ~db ~mango () =
-  let request =
-    make_request
-      ~body:(Json.to_string mango)
-      ~meth:`POST
-      (db_uri ^ "/" ^ db ^ "/_all_docs")
+  let actual_mango =
+    match mango with
+    | `Assoc m -> Ok(`Assoc (("include_docs", `Bool true) :: m))
+    | _ -> Error(Failure "Invalid mango passed.")
   in
-  let* response = Http.run request in
-  response >>|= encode_response ~encoding:Json
+  match actual_mango with
+  | Ok mango ->
+    let request =
+      make_request
+        ~body:(Json.to_string mango)
+        ~meth:`POST
+        (db_uri ^ "/" ^ db ^ "/_all_docs")
+    in
+    let* response = Http.run request in
+    response >>|= encode_response ~encoding:Json
+  | Error _ as e -> Lwt.return e
 
 let save_doc ~db ~doc () =
   let request =

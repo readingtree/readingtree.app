@@ -26,6 +26,7 @@
    lwt
    cmdliner
    yojson
+   ppx_deriving_yojson
    base64
    hyper
    tyxml

@@ -4,6 +4,7 @@ open Readingtree
 let migrations =
   [ (Database.create_db ~name:"trees")
   ; (Database.create_db ~name:"users")
+  ; (Database.create_db ~name:"books")
   ]
 
 (** Web endpoint declaration *)
@@ -22,7 +23,8 @@ let () =
   @@ D.cookie_sessions
   @@ D.router
        [ D.get "/" Handler.index_handler
-       ; D.scope "/api" [] [
-           D.get "/trees" @@ Handler.get_trees_paginated_handler
-         ]
+       ; D.scope "/api" []
+           [ D.get "/trees" @@ Handler.get_trees_paginated_handler
+           ; D.get "/books" @@ Handler.get_books_handler
+           ]
        ]
