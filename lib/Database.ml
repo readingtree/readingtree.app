@@ -17,12 +17,12 @@ let db_uri =
   | None -> failwith "COUCHDB_URI must be set."
 
 let auth_credential =
-  match ( Sys.getenv_opt "COUCHDB_USERNAME"
+  match ( Sys.getenv_opt "COUCHDB_USER"
         , Sys.getenv_opt "COUCHDB_PASSWORD" )
   with
   | ( Some username
     , Some password ) -> Base64.encode_exn (username ^ ":" ^ password)
-  | _ -> failwith "COUCHDB_PASSWORD or COUCHDB_USERNAME is not set."
+  | _ -> failwith "COUCHDB_PASSWORD or COUCHDB_USER is not set."
 
 let standard_headers =
   [ ("Content-Type", "application/json")
