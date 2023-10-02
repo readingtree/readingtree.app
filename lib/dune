@@ -8,6 +8,7 @@
    yojson
    base64
    readingtree.view
+   readingtree.util
  )
  (preprocess
   (pps lwt_ppx)))

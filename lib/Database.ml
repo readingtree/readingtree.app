@@ -30,6 +30,7 @@ let standard_headers =
   ; ("Authorization", "Basic " ^ auth_credential) ]
 
 exception Encoding_error of string
+exception Request_error of string
 
 let make_request =
   Http.request
@@ -37,25 +38,25 @@ let make_request =
 
 let encode_response ~(encoding : encoding_type) response =
   let status = Hyper.status response in
+  let+ body = Hyper.body response in
   if Hyper.is_successful status then
-    let+ body = Hyper.body response in
     match encoding with
     | Json ->
-       begin
-         match Json.from_string body with
-         | Ok json -> Ok (Json_response json)
-         | Error e -> Error (Encoding_error (Printexc.to_string e))
-       end
+      begin
+        match Json.from_string body with
+        | Ok json -> Ok (Json_response json)
+        | Error e -> Error (Encoding_error (Printexc.to_string e))
+      end
     | Text -> Ok (Text_response body)
   else
-    Lwt.return (Error (Encoding_error (Hyper.status_to_string status)))
+    Error (Request_error ((Hyper.status_to_string status) ^ " " ^ body))
 
-let create_db ~name =
+let create_db ~name () =
   let request = make_request ~meth:`PUT (db_uri ^ "/" ^ name) in
   let* response = Http.run request in
   response >>|= encode_response ~encoding:Json
 
-let find_doc ~db ~id =
+let find_doc ~db ~id () =
   let request =
     make_request
       ~body:(Json.to_string (`Assoc [("_id", `String id)]))
@@ -65,12 +66,37 @@ let find_doc ~db ~id =
   let* response = Http.run request in
   response >>|= encode_response ~encoding:Json
 
-let save_doc ~db ~doc =
+let find_docs ~db ~mango () =
+  let request =
+    make_request
+      ~body:(Json.to_string mango)
+      ~meth:`POST
+      (db_uri ^ "/" ^ db ^ "/_all_docs")
+  in
+  let* response = Http.run request in
+  response >>|= encode_response ~encoding:Json
+
+let save_doc ~db ~doc () =
   let request =
     make_request
       ~meth:`PUT
       ~body:(Json.to_string doc)
       (db_uri ^ "/" ^ db)
+  in
+  let* response = Http.run request in
+  response >>|= encode_response ~encoding:Json
+
+let delete_doc ?rev ~db ~id () =
+  let query = (
+    match rev with
+    | Some revision -> Printf.sprintf "?rev=%s" revision
+    | None -> ""
+  )
+  in
+  let request =
+    make_request
+      ~meth:`DELETE
+      (db_uri ^ "/" ^ db ^ "/" ^ id ^ query)
   in
   let* response = Http.run request in
   response >>|= encode_response ~encoding:Json

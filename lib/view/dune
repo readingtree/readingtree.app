@@ -5,6 +5,7 @@
    dream
    lwt
    tyxml
+   readingtree.util
    readingtree.partial
    readingtree.layout)
  (preprocess

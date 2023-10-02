@@ -6,4 +6,4 @@ let run ?redirect_limit ?server request =
   try
     Hyper.run ?redirect_limit ?server request >>= fun res -> Lwt.return (Ok res)
   with
-    exn -> Lwt.return (Error exn)
+    _ as e -> Lwt.return (Error e)
