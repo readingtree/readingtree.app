@@ -22,7 +22,8 @@ let () =
   @@ D.set_secret (D.to_base64url (D.random 32))
   @@ D.cookie_sessions
   @@ D.router
-       [ D.get "/" Handler.index_handler
+       [ D.get "/" Handler.index_view_handler
+       ; D.get "/trees" Handler.trees_list_view_handler
        ; D.scope "/api" []
            [ D.get "/trees" @@ Handler.get_trees_paginated_handler
            ; D.get "/books" @@ Handler.get_books_handler
