@@ -28,10 +28,11 @@ let trees_list_view_handler request =
   let (page, size) = _get_page_parameters request in
   match%lwt Database.find_docs ~db:"trees" ~mango:(`Assoc [("limit", `Int size); ("skip", `Int (size * page))]) () with
   | Ok (Json_response (json)) ->
+    let () = print_endline @@ Json.to_string (json) in
     begin
       match Json.member "rows" json with
       | Ok (`List trees) ->
-        let trees = List.filter_map (fun tree -> match Type.Tree.of_yojson tree with Ok t -> Some t | Error _ -> None) trees in
+        let trees = List.filter_map (fun tree -> match Type.Tree.of_yojson tree with Ok t -> Some t | Error e -> Dream.error (fun log -> log ~request "%s" e); None) trees in
         Dream.html @@ View.Trees.render ~trees request
       | Ok _ | Error _ -> Dream.html ~status:`Internal_Server_Error @@ View.ServerError.render request
     end
