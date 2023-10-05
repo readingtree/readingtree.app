@@ -25,7 +25,7 @@ let () =
        [ D.get "/" Handler.index_view_handler
        ; D.get "/trees" Handler.trees_list_view_handler
        ; D.scope "/api" []
-           [ D.get "/trees" @@ Handler.get_trees_paginated_handler
-           ; D.get "/books" @@ Handler.get_books_handler
+           [ D.get "/trees" @@ Handler.Api.get_trees_paginated_handler
+           ; D.get "/books" @@ Handler.Api.get_books_handler
            ]
        ]

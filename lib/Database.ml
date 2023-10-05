@@ -56,12 +56,28 @@ let create_db ~name () =
   let* response = Http.run request in
   response >>|= encode_response ~encoding:Json
 
-let find_doc ~db ~id () =
+let find_doc ~db ?id ?mango () =
+  let db_uri = (db_uri ^ "/" ^ db ^ "/_find") in
   let request =
-    make_request
-      ~body:(Json.to_string (`Assoc [("_id", `String id)]))
-      ~meth:`POST
-      (db_uri ^ "/" ^ db ^ "/_find")
+    match id with
+    | Some id ->
+      make_request
+        ~body:(Json.to_string (`Assoc [("_id", `String id)]))
+        ~meth:`POST
+        db_uri
+    | None ->
+      begin
+        match mango with
+        | Some mango ->
+          make_request
+            ~body:(Json.to_string mango)
+            ~meth:`POST
+            db_uri
+        | None ->
+          make_request
+            ~meth:`GET
+            db_uri
+      end
   in
   let* response = Http.run request in
   response >>|= encode_response ~encoding:Json

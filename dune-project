@@ -28,6 +28,7 @@
    yojson
    ppx_deriving_yojson
    base64
+   digestif
    hyper
    tyxml
  )
