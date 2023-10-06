@@ -24,6 +24,11 @@ let () =
   @@ D.router
        [ D.get "/" Handler.index_view_handler
        ; D.get "/trees" Handler.trees_list_view_handler
+       ; D.get "/login" Handler.login_view_handler
+       ; D.post "/login" Handler.login_handler
+       ; D.any "/logout" Handler.logout_handler
+       ; D.get "/signup" Handler.signup_view_handler
+       ; D.post "/signup" Handler.signup_handler
        ; D.scope "/api" []
            [ D.get "/trees" @@ Handler.Api.get_trees_paginated_handler
            ; D.get "/books" @@ Handler.Api.get_books_handler

@@ -43,6 +43,24 @@ let trees_list_view_handler request =
   | Ok (Text_response _) -> Dream.html ~status:`Internal_Server_Error @@ View.ServerError.render request
   | Error exn -> Dream.html ~status:`Internal_Server_Error @@ View.ServerError.render ~exn request
 
+(** Render the signup page *)
+let signup_view_handler request = Dream.html @@ View.Signup.render request
+
+(** Handle a signup for submission *)
+let signup_handler request =
+  match%lwt Dream.form ~csrf:true request with
+  | `Ok [ "email", email
+	      ; "name", name
+	      ; "password", password
+	      ; "password_confirm", confirm
+	      ] ->
+    begin
+      match Validate.validate_sign_up ~name ~email ~password ~confirm () with
+      | [] -> failwith "CREATE USER"
+      | errors -> Dream.html ~status:`Bad_Request @@ View.Signup.render ~name ~email ~errors request
+    end
+  | _ -> Dream.html ~status:`Bad_Request @@ View.BadRequest.render request
+
 (** Render the login page *)
 let login_view_handler request = Dream.html @@ View.Login.render request
 
@@ -83,8 +101,17 @@ let login_handler request =
   | `Wrong_session _ | `Expired _ -> Dream.redirect request "/login"
   | _ -> Dream.html ~status:`Bad_Request @@ View.BadRequest.render request
 
+(** Logs the user out on any method to "/logout" *)
+let logout_handler request =
+  let* () = Dream.invalidate_session request in
+  Dream.redirect request "/login"
+
+(** A module that handles all of the handlers for routes under /api
+    99% of the handlers under here will render JSON.
+*)
 module Api = struct
-  (** Get all books by ids, we want this instead of a get all books because we'll probably have a crap ton of books. *)
+  (** Get all books by ids, we want this instead of a get all books
+      because we'll probably have a crap ton of books. *)
   let get_books_handler request =
     let (page, size) = _get_page_parameters request in
     let ids = List.map (fun s -> `String s) @@ Dream.queries request "ids" in
