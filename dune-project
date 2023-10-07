@@ -26,11 +26,13 @@
    lwt
    cmdliner
    yojson
+   ulid
    ppx_deriving_yojson
    base64
    digestif
    hyper
    tyxml
+   re2
  )
  (tags
   (web application reading)))

@@ -1,4 +1,4 @@
 (library
  (public_name readingtree.util)
  (name util)
- (libraries dream digestif))
+ (libraries dream digestif ulid))

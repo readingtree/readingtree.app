@@ -100,15 +100,20 @@ let find_docs ~db ~mango () =
     response >>|= encode_response ~encoding:Json
   | Error _ as e -> Lwt.return e
 
-let save_doc ~db ~doc () =
+let save_doc ~db ~id ~doc () =
   let request =
     make_request
       ~meth:`PUT
       ~body:(Json.to_string doc)
-      (db_uri ^ "/" ^ db)
+      (db_uri ^ "/" ^ db ^ "/" ^ id)
   in
   let* response = Http.run request in
   response >>|= encode_response ~encoding:Json
+
+(** Creates a new document, with a random UUID. *)
+let create_doc ~db ~doc () =
+  let+ response = save_doc ~db ~id:(Ulid.ulid ()) ~doc () in
+  Result.bind response (fun _ -> Ok ())
 
 let delete_doc ?rev ~db ~id () =
   let query = (

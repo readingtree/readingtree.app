@@ -56,7 +56,39 @@ let signup_handler request =
 	      ] ->
     begin
       match Validate.validate_sign_up ~name ~email ~password ~confirm () with
-      | [] -> failwith "CREATE USER"
+      | [] ->
+        begin
+          let* name_exists_result = Validate.validate_field_unique ~db:"users" "name" (`String name) in
+          let* email_exists_result = Validate.validate_field_unique ~db:"users" "email" (`String email) in
+          match (name_exists_result, email_exists_result) with
+          | (Ok true, Ok true) ->
+            begin
+              let user = `Assoc (
+                  [ ("name", `String name)
+                  ; ("email", `String email)
+                  ; ("password", `String (Util.Hash.hash_string password))
+                  ]
+                )
+              in
+              match%lwt Database.create_doc ~db:"users" ~doc:user () with
+              | Ok () -> Dream.redirect request "/login"
+              | Error _ ->
+                Dream.html
+                  ~status:`Internal_Server_Error
+                @@ View.Signup.render ~name ~email ~errors:[("server", "Something went wrong creating your account try again later")] request
+            end
+          | (Ok name_exists, Ok email_exists) ->
+            let errors =
+              List.filter_map
+                (fun (b, key, error) -> if b then Some (key, error) else None)
+                [(name_exists, "name", "That name is already in use."); (email_exists, "email", "That email is already in use.")]
+            in
+            Dream.html ~status:`Bad_Request
+            @@ View.Signup.render ~name ~email ~errors request
+          | (Error _, Ok _) | (Ok _, Error _) | (Error _, Error _) ->
+            Dream.html ~status:`Internal_Server_Error
+            @@ View.Signup.render ~name ~email ~errors:[("server", "Something went wrong processing your signup. Please try again later.")] request
+        end
       | errors -> Dream.html ~status:`Bad_Request @@ View.Signup.render ~name ~email ~errors request
     end
   | _ -> Dream.html ~status:`Bad_Request @@ View.BadRequest.render request

@@ -1,17 +1,18 @@
+let name_regex = Re2.create_exn "^[a-zA-Z0-9_-]+$"
+let email_regex = Re2.create_exn "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
+let password_regex = Re2.create_exn {|[!|@|#|$|%|^|&|\*|(|)|\[|\]|\"|:|;|'|<|>|\/|\\|,|.|`|~]|}
+
 let validate_name ~name () =
-  let regex = Str.regexp "^[a-zA-Z0-9_-]+$" in
   String.length name >= 3 &&
   String.length name <= 25 &&
-  (Str.string_match regex name 0) &&
+  (Re2.matches name_regex name) &&
   (String.lowercase_ascii name) <> "unknown" (** Reserved name for deleted records *)
 
 let validate_password ~password () =
-  let regex = Str.regexp {|^(?:(?=.*[a-z])(?:(?=.*[A-Z])(?=.*[\d\W])|(?=.*\W)(?=.*\d))|(?=.*\W)(?=.*[A-Z])(?=.*\d)).{8,}$|} in
-  (Str.string_match regex password 0) && (String.length password >= 8)
+  (String.length password >= 8) && (Re2.matches password_regex password)
 
 let validate_email ~email () =
-  let regex = Str.regexp "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$" in
-  (String.length email > 4) && (Str.string_match regex email 0)
+  (String.length email > 4) && (Re2.matches email_regex email)
 
 let validate_sign_up ~name ~email ~password ~confirm () =
   let errors = ref [] in
@@ -24,3 +25,16 @@ let validate_sign_up ~name ~email ~password ~confirm () =
   if not @@ validate_email ~email () then
     errors := ("email", "Your email is not a valid email.") :: !errors;
   !errors
+
+let validate_field_unique ~db field value =
+  let open Lwt.Syntax in
+  let+ json = Database.find_doc ~db ~mango:(`Assoc [("selector", `Assoc [(field, value)])]) () in
+  match json with
+  | Ok (Json_response json) ->
+    begin
+      match Json.member "docs" json with
+      | Ok (`List []) -> Ok true
+      | Ok _ | Error _ -> Ok false
+    end
+  | Ok _ -> Error (Failure "Internal server error")
+  | Error _ as e -> e

@@ -4,7 +4,9 @@
  (libraries
    dream
    lwt
+   re2
    hyper
+   ulid
    yojson
    base64
    digestif
