@@ -29,7 +29,7 @@ let () =
        ; D.any "/logout" Handler.logout_handler
        ; D.get "/signup" Handler.signup_view_handler
        ; D.post "/signup" Handler.signup_handler
-       ; D.scope "/api" []
+       ; D.scope "/api" [ Middleware.Auth.requires_role ~role:"user" ]
            [ D.get "/trees" @@ Handler.Api.get_trees_paginated_handler
            ; D.get "/books" @@ Handler.Api.get_books_handler
            ]

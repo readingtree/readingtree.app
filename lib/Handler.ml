@@ -42,6 +42,7 @@ let signup_handler request =
                   [ ("name", `String name)
                   ; ("email", `String email)
                   ; ("password", `String (Util.Hash.hash_string password))
+                  ; ("role", `String "user")
                   ; ("books", `List [])
                   ]
                 )
@@ -93,11 +94,12 @@ let login_handler request =
           | Ok (`List [
               `Assoc
                 [ ("_id", `String id)
-                ; ("name", `String _)
+                ; ("name", `String name)
                 ; ("role", `String role)
                 ]
             ]) ->
             let* () = Dream.set_session_field request "user" id in
+            let* () = Dream.set_session_field request "user_name" name in
             let* () = Dream.set_session_field request "is_admin" @@ string_of_bool (role = "admin") in
             Dream.redirect request "/"
           | Ok (`List []) -> Dream.html ~status:`Not_Found @@ View.Login.render request (** TODO: Render errors here. *)
