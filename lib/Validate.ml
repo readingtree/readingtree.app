@@ -28,13 +28,14 @@ let validate_sign_up ~name ~email ~password ~confirm () =
 
 let validate_field_unique ~db field value =
   let open Lwt.Syntax in
-  let+ json = Database.find_doc ~db ~mango:(`Assoc [("selector", `Assoc [(field, value)])]) () in
+  let+ json = Database.find_doc ~db ~mango:(`Assoc [("fields", `List [`String "_id"]); ("selector", `Assoc [(field, value)])]) () in
   match json with
   | Ok (Json_response json) ->
     begin
       match Json.member "docs" json with
       | Ok (`List []) -> Ok true
-      | Ok _ | Error _ -> Ok false
+      | Ok _ -> Ok false
+      | Error _ as e -> e
     end
   | Ok _ -> Error (Failure "Internal server error")
   | Error _ as e -> e
