@@ -56,7 +56,7 @@ let signup_handler request =
           | (Ok name_exists, Ok email_exists) ->
             let errors =
               List.filter_map
-                (fun (b, key, error) -> (print_endline ((string_of_bool b) ^ key ^ error)); if b then Some (key, error) else None)
+                (fun (b, key, error) -> if not b then Some (key, error) else None)
                 [(name_exists, "name", "That name is already in use."); (email_exists, "email", "That email is already in use.")]
             in
             Dream.html ~status:`Bad_Request
