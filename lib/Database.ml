@@ -62,7 +62,13 @@ let find_doc ~db ?id ?mango () =
     match id with
     | Some id ->
       make_request
-        ~body:(Json.to_string (`Assoc [("_id", `String id)]))
+        ~body:(Json.to_string
+                 (`Assoc
+                    [ ("include_docs", `Bool true)
+                    ; ("selector", `Assoc [("_id", `String id)])
+                    ]
+                 )
+              )
         ~meth:`POST
         db_uri
     | None ->
@@ -100,6 +106,8 @@ let find_docs ~db ~mango () =
     response >>|= encode_response ~encoding:Json
   | Error _ as e -> Lwt.return e
 
+(** Creates or saves a document, id is required.
+    You should probably use [create_doc] if you want to create a new document. *)
 let save_doc ~db ~id ~doc () =
   let request =
     make_request
@@ -110,7 +118,8 @@ let save_doc ~db ~id ~doc () =
   let* response = Http.run request in
   response >>|= encode_response ~encoding:Json
 
-(** Creates a new document, with a random UUID. *)
+(** Creates a new document, with a random UUID.
+    This simply just wraps [save_doc] and handles ID generation for you. *)
 let create_doc ~db ~doc () =
   let+ response = save_doc ~db ~id:(Ulid.ulid ()) ~doc () in
   Result.bind response (fun _ -> Ok ())
