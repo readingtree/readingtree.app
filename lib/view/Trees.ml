@@ -6,7 +6,6 @@ let render ~trees request =
       ~title:"Reading Tree"
       [ p [ txt "Welcome to Reading Tree!" ]
       ; div tree_views
-      ; Partial.Tree_card.render { title = Some "foo"; book = "Book"; description = None; children = [{ title = Some "foo"; book = "Book"; description = None; children = []; tags = ["asdas"] }]; tags = ["oo"] }
       ]
       request
   in

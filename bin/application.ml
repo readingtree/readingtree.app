@@ -32,6 +32,7 @@ let () =
        ; D.post "/signup" Handler.signup_handler
        ; D.scope "/api" [ Middleware.Auth.requires_role ~role:"user" ]
            [ D.get "/trees" @@ Handler.Api.get_trees_paginated_handler
+           ; D.get "/trees/:id" @@ Handler.Api.get_tree_by_id_handler
            ; D.get "/books" @@ Handler.Api.get_books_handler
            ]
        ]

@@ -56,55 +56,59 @@ let create_db ~name () =
   let* response = Http.run request in
   response >>|= encode_response ~encoding:Json
 
-let find_doc ~db ?id ?mango () =
-  let db_uri = (db_uri ^ "/" ^ db ^ "/_find") in
+let find_doc ~db ~id () =
   let request =
-    match id with
-    | Some id ->
-      make_request
-        ~body:(Json.to_string
-                 (`Assoc
-                    [ ("include_docs", `Bool true)
-                    ; ("selector", `Assoc [("_id", `String id)])
-                    ]
-                 )
-              )
-        ~meth:`POST
-        db_uri
-    | None ->
-      begin
-        match mango with
-        | Some mango ->
-          make_request
-            ~body:(Json.to_string mango)
-            ~meth:`POST
-            db_uri
-        | None ->
-          make_request
-            ~meth:`GET
-            db_uri
-      end
+    let db_uri = (db_uri ^ "/" ^ db ^ "/" ^ id) in
+    make_request
+      ~meth:`GET
+      db_uri
   in
   let* response = Http.run request in
   response >>|= encode_response ~encoding:Json
 
-let find_docs ~db ~mango () =
-  let actual_mango =
-    match mango with
-    | `Assoc m -> Ok(`Assoc (("include_docs", `Bool true) :: m))
-    | _ -> Error(Failure "Invalid mango passed.")
+let find_docs ~db ?paginate ?(mango=`Assoc []) () =
+  let mango =
+    match paginate with
+    | Some (page, size) ->
+      begin
+        match mango with
+        | `Assoc m -> `Assoc (("limit", `Int size) :: ("skip", `Int (page * size)) :: m)
+        | _ -> raise @@ Failure ("Mango must be a `Assoc.")
+      end
+    | None -> mango
   in
-  match actual_mango with
-  | Ok mango ->
-    let request =
-      make_request
-        ~body:(Json.to_string mango)
-        ~meth:`POST
-        (db_uri ^ "/" ^ db ^ "/_all_docs")
-    in
-    let* response = Http.run request in
-    response >>|= encode_response ~encoding:Json
-  | Error _ as e -> Lwt.return e
+  let request =
+    make_request
+      ~body:(Json.to_string mango)
+      ~meth:`POST
+      (db_uri ^ "/" ^ db ^ "/_find")
+  in
+  let* response = Http.run request in
+  response >>|= encode_response ~encoding:Json
+
+let find_all_docs ~db ~paginate:(page, size) () =
+  let request =
+    make_request
+      ~meth:`GET
+      (db_uri ^ "/" ^ db ^ "/_all_docs" ^ (Printf.sprintf "?limit=%d&skip=%d&include_docs=true" page size))
+  in
+  let* response = Http.run request in
+  let+ encoded_response = response >>|= encode_response ~encoding:Json in
+  match encoded_response with
+  | Ok (Json_response json) ->
+    begin
+      match Json.member "rows" json with
+      | Ok (`List rows) ->
+        let docs =
+          List.filter_map
+            (fun row -> match Json.member "doc" row with Ok json -> Some json | _ -> None)
+            rows
+        in
+        Ok (Json_response (`Assoc ([("docs", `List docs)])))
+      | Ok _ -> Error (Failure "Something went wrong encoding in find_all_docs.")
+      | Error _ as e -> e
+    end
+  | _ as e -> e
 
 (** Creates or saves a document, id is required.
     You should probably use [create_doc] if you want to create a new document. *)

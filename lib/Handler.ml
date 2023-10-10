@@ -6,13 +6,23 @@ let index_view_handler request = Dream.html @@ View.Index.render request
 (** Render the tree list view page *)
 let trees_list_view_handler request =
   let (page, size) = Util.Dream.get_page_parameters request in
-  match%lwt Database.find_docs ~db:"trees" ~mango:(`Assoc [("limit", `Int size); ("skip", `Int (size * page))]) () with
+  match%lwt Database.find_all_docs
+              ~db:"trees"
+              ~paginate:(page, size)
+              ()
+  with
   | Ok (Json_response (json)) ->
-    let () = print_endline @@ Json.to_string (json) in
     begin
-      match Json.member "rows" json with
+      match Json.member "docs" json with
       | Ok (`List trees) ->
-        let trees = List.filter_map (fun tree -> match Type.Tree.of_yojson tree with Ok t -> Some t | Error e -> Dream.error (fun log -> log ~request "%s" e); None) trees in
+        let trees =
+          List.filter_map
+            (fun tree ->
+               match Type.Tree.of_yojson tree with
+               | Ok t -> Some t
+               | Error e -> Dream.error (fun log -> log ~request "Encountered error in tree_list_view_handler: %s" e); None)
+            trees
+        in
         Dream.html @@ View.Trees.render ~trees request
       | Ok _ | Error _ ->
         Dream.html ~status:`Internal_Server_Error
@@ -96,10 +106,12 @@ let login_handler request =
           ; ("selector",
              `Assoc
                [ ("name", `String name)
-               ; ("password", `String password)])]
+               ; ("password", `String password)])
+          ]
       in
-      match%lwt Database.find_doc ~db:"users" ~mango () with
+      match%lwt Database.find_docs ~db:"users" ~mango () with
       | Ok (Json_response json) ->
+        let () = Dream.log "%s" @@ Json.pp json in
         begin
           match Json.member "docs" json with
           | Ok (`List [
@@ -116,13 +128,19 @@ let login_handler request =
           | Ok (`List []) ->
             Dream.html ~status:`Not_Found
             @@ View.Login.render request (** TODO: Render errors here. *)
-          | Ok _ | Error _ ->
+          | Ok _ ->
             Dream.html ~status:`Internal_Server_Error
             @@ View.ServerError.render request
+          | Error exn ->
+            Dream.html ~status:`Internal_Server_Error
+            @@ View.ServerError.render request ~exn
         end
-      | Ok _ | Error _ ->
+      | Ok _ ->
         Dream.html ~status:`Internal_Server_Error
         @@ View.ServerError.render request
+      | Error exn ->
+        Dream.html ~status:`Internal_Server_Error
+        @@ View.ServerError.render request ~exn
     end
   | `Wrong_session _ | `Expired _ -> Dream.redirect request "/login"
   | _ ->

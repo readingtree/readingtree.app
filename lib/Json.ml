@@ -14,3 +14,5 @@ let from_string str =
     Ok (S.from_string str)
   with
     e -> Error e
+
+let pp json = Format.asprintf "Parsed to %a" Yojson.Safe.pp json
