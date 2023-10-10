@@ -2,18 +2,8 @@
  (name readingtree)
  (public_name readingtree)
  (libraries
-   dream
-   lwt
-   re2
-   hyper
-   ulid
-   yojson
-   base64
-   digestif
-   readingtree.type
-   readingtree.view
-   readingtree.util
- )
+   readingtree.handler
+   readingtree.middleware)
  (preprocess
   (pps lwt_ppx)))
 

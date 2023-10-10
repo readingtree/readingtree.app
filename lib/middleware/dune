@@ -1,0 +1,7 @@
+(library
+ (name middleware)
+ (public_name readingtree.middleware)
+ (libraries
+   readingtree.view
+   dream
+   lwt))

@@ -1,0 +1,6 @@
+(library
+ (name http)
+ (public_name readingtree.http)
+ (libraries
+   dream
+   hyper))

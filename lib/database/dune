@@ -1,0 +1,9 @@
+(library
+ (name database)
+ (public_name readingtree.database)
+ (libraries
+   readingtree.http
+   readingtree.json
+   hyper
+   ulid
+   yojson))

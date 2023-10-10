@@ -1,0 +1,14 @@
+(library
+ (public_name readingtree.handler)
+ (name handler)
+ (libraries
+   readingtree.util
+   readingtree.database
+   readingtree.view
+   readingtree.validation
+   lwt
+   dream
+   digestif
+   ulid)
+ (preprocess
+  (pps lwt_ppx)))

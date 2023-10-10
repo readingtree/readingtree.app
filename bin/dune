@@ -4,5 +4,4 @@
  (libraries
    dream
    lwt
-   readingtree
-))
+   readingtree))

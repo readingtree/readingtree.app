@@ -1,0 +1,4 @@
+(library
+ (name json)
+ (public_name readingtree.json)
+ (libraries yojson))

@@ -1,0 +1,7 @@
+(library
+ (name validation)
+ (public_name readingtree.validation)
+ (libraries
+   readingtree.database
+   lwt
+   re2))

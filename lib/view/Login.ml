@@ -1,6 +1,6 @@
-(** TODO: Bootstrapify *)
 let render request =
   let open Tyxml.Html in
+  let referrer = Dream.query request "referrer" in
   let html =
     Layout.Default.layout
       ~title:"Log In"
@@ -31,6 +31,11 @@ let render request =
                 [ a_class [ "btn"; "btn-primary" ] ]
                 [ txt "Login" ]
             ]
+          ; input ~a:
+              [ a_input_type `Hidden
+              ; a_name "referrer"
+              ; a_value (match referrer with Some r -> r | None -> "/")
+              ] ()
           ; div ~a:
               [ a_class [] ]
               [] (** TODO: Add error handling *)
