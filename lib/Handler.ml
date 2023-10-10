@@ -3,6 +3,9 @@ open Lwt.Syntax
 (** Render the index page *)
 let index_view_handler request = Dream.html @@ View.Index.render request
 
+(** Render a tree page *)
+let tree_view_handler request = Dream.html @@ View.Tree.render request
+
 (** Render the tree list view page *)
 let trees_list_view_handler request =
   let (page, size) = Util.Dream.get_page_parameters request in

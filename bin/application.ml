@@ -23,7 +23,9 @@ let () =
   @@ D.cookie_sessions
   @@ Middleware.Global.exception_handler
   @@ D.router
-       [ D.get "/" Handler.index_view_handler
+       [ D.get "/static/**" @@ D.static "static"
+       ; D.get "/" Handler.index_view_handler
+       ; D.get "/trees/:id" Handler.tree_view_handler
        ; D.get "/trees" Handler.trees_list_view_handler
        ; D.get "/login" Handler.login_view_handler
        ; D.post "/login" Handler.login_handler

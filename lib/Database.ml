@@ -51,6 +51,7 @@ let encode_response ~(encoding : encoding_type) response =
   else
     Error (Request_error ((Hyper.status_to_string status) ^ " " ^ body))
 
+(** Create a database. This action is idempotent. *)
 let create_db ~name () =
   let request = make_request ~meth:`PUT (db_uri ^ "/" ^ name) in
   let* response = Http.run request in
@@ -86,6 +87,7 @@ let find_docs ~db ?paginate ?(mango=`Assoc []) () =
   let* response = Http.run request in
   response >>|= encode_response ~encoding:Json
 
+(** Find all documents in a database, forcibly paginated. See /_all_docs in the CouchDB docs. *)
 let find_all_docs ~db ~paginate:(page, size) () =
   let request =
     make_request
@@ -128,6 +130,7 @@ let create_doc ~db ~doc () =
   let+ response = save_doc ~db ~id:(Ulid.ulid ()) ~doc () in
   Result.bind response (fun _ -> Ok ())
 
+(** Deletes a document by id, optionally provide the rev to delete a certain revision. *)
 let delete_doc ?rev ~db ~id () =
   let query = (
     match rev with
