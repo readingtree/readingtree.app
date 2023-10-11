@@ -1,6 +1,12 @@
-let render request =
+let render
+    ?(errors=[])
+    request
+  =
   let open Tyxml.Html in
   let referrer = Dream.query request "referrer" in
+  let formatted_errors =
+    List.map (fun (_, error) -> p ~a:[ a_class [ "text-danger" ] ] [ txt error ]) errors
+  in
   let html =
     Layout.Default.layout
       ~title:"Log In"
@@ -38,7 +44,7 @@ let render request =
               ] ()
           ; div ~a:
               [ a_class [] ]
-              [] (** TODO: Add error handling *)
+              formatted_errors
           ]
       ; p
           [ txt "Don't have an account? "

@@ -39,17 +39,20 @@ let make_request =
 let encode_response ~(encoding : encoding_type) response =
   let status = Hyper.status response in
   let+ body = Hyper.body response in
-  if Hyper.is_successful status then
-    match encoding with
-    | Json ->
-      begin
-        match Json.from_string body with
-        | Ok json -> Ok (Json_response json)
-        | Error e -> Error (Encoding_error (Printexc.to_string e))
-      end
-    | Text -> Ok (Text_response body)
-  else
-    Error (Request_error ((Hyper.status_to_string status) ^ " " ^ body))
+  match status with
+  | _s when Hyper.is_successful _s ->
+    begin
+      match encoding with
+      | Json ->
+        begin
+          match Json.from_string body with
+          | Ok json -> Ok (Json_response json)
+          | Error e -> Error (Encoding_error (Printexc.to_string e))
+        end
+      | Text -> Ok (Text_response body)
+    end
+  | `Not_Found -> Error (Not_found)
+  | _ ->  Error (Request_error ((Hyper.status_to_string status) ^ " " ^ body))
 
 (** Create a database. This action is idempotent. *)
 let create_db ~name () =

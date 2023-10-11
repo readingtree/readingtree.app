@@ -1,3 +1,14 @@
+(**
+   This file is apart of Reading Tree.
+
+   AUTHOR:
+   Rawley Fowler <rawleyfowler@proton.me>
+
+   DESC:
+   A module that handles all of the handlers for non API routes. 
+   All of these should return non-json responses.
+   See the [Api] module for API related handlers. *)
+
 open Lwt.Syntax
 
 module Api = Api
@@ -12,7 +23,7 @@ let tree_view_handler request = Dream.html @@ View.Tree.render request
 let trees_list_view_handler request =
   let (page, size) = Util.Dream.get_page_parameters request in
   match%lwt Database.find_all_docs
-              ~db:"trees"
+              ~db:"readingtree"
               ~paginate:(page, size)
               ()
   with
@@ -29,16 +40,11 @@ let trees_list_view_handler request =
             trees
         in
         Dream.html @@ View.Trees.render ~trees request
-      | Ok _ | Error _ ->
-        Dream.html ~status:`Internal_Server_Error
-        @@ View.ServerError.render request
+      | Ok _ -> failwith "Unreachable"
+      | Error exn -> View.Exn.from_exn request exn
     end
-  | Ok (Text_response _) ->
-    Dream.html ~status:`Internal_Server_Error
-    @@ View.ServerError.render request
-  | Error exn ->
-    Dream.html ~status:`Internal_Server_Error
-    @@ View.ServerError.render ~exn request
+  | Ok (Text_response _) -> failwith "Unreachable"
+  | Error exn -> View.Exn.from_exn request exn
 
 (** Render the signup page *)
 let signup_view_handler request = Dream.html @@ View.Signup.render request
@@ -133,20 +139,12 @@ let login_handler request =
             Dream.redirect request referrer
           | Ok (`List []) ->
             Dream.html ~status:`Not_Found
-            @@ View.Login.render request (** TODO: Render errors here. *)
-          | Ok _ ->
-            Dream.html ~status:`Internal_Server_Error
-            @@ View.ServerError.render request
-          | Error exn ->
-            Dream.html ~status:`Internal_Server_Error
-            @@ View.ServerError.render request ~exn
+            @@ View.Login.render request ~errors:[("login", "We couldn't find a user that matches those credentials.")]
+          | Ok _ -> failwith "Unreachable"
+          | Error exn -> View.Exn.from_exn request exn
         end
-      | Ok _ ->
-        Dream.html ~status:`Internal_Server_Error
-        @@ View.ServerError.render request
-      | Error exn ->
-        Dream.html ~status:`Internal_Server_Error
-        @@ View.ServerError.render request ~exn
+      | Ok _ -> failwith "Unreachable"
+      | Error exn -> View.Exn.from_exn request exn
     end
   | `Wrong_session _ | `Expired _ -> Dream.redirect request "/login"
   | _ ->

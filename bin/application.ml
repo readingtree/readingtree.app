@@ -2,9 +2,8 @@ open Readingtree
 
 (** Database creates are idempotent in CouchDB *)
 let migrations =
-  [ (Database.create_db ~name:"trees")
+  [ (Database.create_db ~name:"readingtree")
   ; (Database.create_db ~name:"users")
-  ; (Database.create_db ~name:"books")
   ]
 
 (** Web endpoint declaration *)
@@ -39,6 +38,5 @@ let () =
     ; D.scope "/api" []
         [ D.get "/trees" @@ Handler.Api.get_trees_paginated_handler
         ; D.get "/trees/:id" @@ Handler.Api.get_tree_by_id_handler
-        ; D.get "/books" @@ Handler.Api.get_books_handler
         ]
     ]
