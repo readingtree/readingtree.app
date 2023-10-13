@@ -25,10 +25,7 @@ let get_tree_by_id_handler request =
         @@ View.ServerError.render ~exn request
     end
   | Ok (Text_response _) -> failwith "Unreachable"
-  | Error exn ->
-    let () = print_endline @@ Printexc.to_string exn in
-    Dream.html ~status:`Internal_Server_Error
-    @@ View.ServerError.render ~exn request
+  | Error exn -> View.Exn.from_exn request exn
 
 (** Get a list of trees, paginated by ?size and ?page. *)
 let get_trees_paginated_handler request =
@@ -51,7 +48,5 @@ let get_trees_paginated_handler request =
   in
   match%lwt Database.find_docs ~db:"readingtree" ~mango () with
   | Ok (Json_response json) -> Dream.json @@ Json.to_string json
-  | Error exn ->
-    Dream.html ~status:`Internal_Server_Error
-    @@ View.ServerError.render ~exn request
+  | Error exn -> View.Exn.from_exn request exn
   | _ -> Dream.empty `Bad_Request

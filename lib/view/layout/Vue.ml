@@ -1,6 +1,7 @@
 let layout
       ~title:title_
       body_
+      ?(init="vue.js")
       ?(description="Readingtree.app the best place to learn cool stuff")
       ?(keywords=[])
       ?(scripts=[])
@@ -37,7 +38,7 @@ let layout
        ; div
            ~a:[ a_id "app" ]
            body_
-       ; script ~a:[ a_src "/static/js/vue.js" ] (txt "")
+       ; script ~a:[ a_src ("/static/js/" ^ init) ] (txt "")
        ; div (List.map (fun s -> script ~a:[ a_src s ] (txt "")) scripts)
        ]
     )
