@@ -12,18 +12,7 @@
 let get_tree_by_id_handler request =
   let id = Dream.param request "id" in
   match%lwt Database.find_doc ~db:"readingtree" ~id () with
-  | Ok (Json_response json) ->
-    begin
-      match Json.member "docs" json with
-      | Ok (`List []) -> Dream.empty `Not_Found
-      | Ok (`List [tree]) -> Dream.json @@ Json.to_string tree
-      | Ok _ ->
-        Dream.html ~status:`Internal_Server_Error
-        @@ View.ServerError.render ~exn:(Failure "Somehow got 2 documents with same id.") request
-      | Error exn ->
-        Dream.html ~status:`Internal_Server_Error
-        @@ View.ServerError.render ~exn request
-    end
+  | Ok (Json_response json) -> Dream.json @@ Json.to_string json
   | Ok (Text_response _) -> failwith "Unreachable"
   | Error exn -> View.Exn.from_exn request exn
 
