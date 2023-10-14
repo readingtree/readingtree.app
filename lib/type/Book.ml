@@ -1,6 +1,6 @@
 type t =
   { author : string
-  ; typ : string
+  ; cover : string
   ; title : string
   ; isbn : string
   ; description : string

@@ -2,8 +2,7 @@ type t =
   { _id : string
   ; _rev : string
   ; typ : string
-  ; title : string option
-  ; book : string  (* Book _id *)
+  ; book : Book.t list
   ; description : string option
   ; children : t list
   ; tags : string list

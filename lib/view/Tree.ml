@@ -1,3 +1,4 @@
+(** TODO: Use the .description from the tree in question as the title and add to the TXT below. *)
 let render
     ?(scripts=[])
     ?(styles=[])
@@ -11,8 +12,8 @@ let render
       ~styles
       [ div
           ~a:[ Unsafe.string_attrib "v-if" "error" ]
-          [ txt "{{error}}" ]
-      ; div ~a:[ a_id "tree" ] []
+          [ txt "" ] (** TODO: Add description here as an H1 probably. *)
+      ; div ~a:[ a_class [ "vw-100"; "vh-100" ]; a_id "tree" ] []
       ]
       request
   in

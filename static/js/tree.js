@@ -12,7 +12,7 @@ const makeEdges = (t) => {
 }
 
 const makeNodes = (t) => {
-    const nodes = [{ id: t._id, label: t.book.title, value: t }];
+    const nodes = [{ id: t._id, label: t.book.title, image: t.book.cover, value: t, shape: 'image' }];
     if (!t.children || !t.children.length) return nodes;
     for (const e of t.children) {
         nodes.push(...makeNodes(e));
@@ -29,7 +29,39 @@ const drawTree = (t) => {
         nodes,
         edges
     };
-    new vis.Network(treeContainer, data, {});
+
+    const options = {
+        interaction: {
+            dragNodes: false,
+            dragView: false
+        },
+        nodes: {
+            borderWidth:0,
+            size:42,
+            color: {
+                border: '#222',
+                background: 'transparent'
+            },
+            font: {
+                color: '#111',
+                face: 'Walter Turncoat',
+                size: 16,
+                strokeWidth: 1,
+                strokeColor: '#222'
+            }
+        },
+        edges: {
+            color: {
+                color: '#CCC',
+                highlight: '#A22'
+            },
+            width: 3,
+            length: 275,
+            hoverWidth: .05
+        }
+    };
+
+    new vis.Network(treeContainer, data, options);
 }
 
 const getTree = async (treeId = window.location.href.split(/\//).pop()) => {
