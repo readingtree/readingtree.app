@@ -16,8 +16,12 @@ module Api = Api
 (** Render the index page *)
 let index_view_handler request = Dream.html @@ View.Index.render request
 
-(** Render a tree page *)
-let tree_view_handler request = Dream.html @@ View.Tree.render request
+(** Render a tree page. JavaScript will pull the tree from the API. *)
+let tree_view_handler request =
+  Dream.html @@
+  View.Tree.render
+    ~scripts:["https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"]
+    request
 
 (** Render the tree list view page *)
 let trees_list_view_handler request =

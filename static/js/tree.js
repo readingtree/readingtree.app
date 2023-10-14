@@ -1,28 +1,49 @@
-const { createApp, ref } = Vue;
+let tree;
+let error;
 
-const tree = ref(undefined);
-const error = ref(undefined);
+const makeEdges = (t) => {
+    if (!t.children || !t.children.length) return [];
+    const edges = [];
+    for (const e of t.children) {
+        edges.push({ from: t._id, to: e._id });
+        edges.push(...makeEdges(e));
+    }
+    return edges;
+}
 
-const getTree = async () => {
+const makeNodes = (t) => {
+    const nodes = [{ id: t._id, label: t.book.title, value: t }];
+    if (!t.children || !t.children.length) return nodes;
+    for (const e of t.children) {
+        nodes.push(...makeNodes(e));
+    }
+    return nodes;
+}
+
+const drawTree = (t) => {
+    console.log(t);
+    const treeContainer = document.getElementById('tree');
+    const nodes = makeNodes(t);
+    const edges = makeEdges(t);
+    const data = {
+        nodes,
+        edges
+    };
+    new vis.Network(treeContainer, data, {});
+}
+
+const getTree = async (treeId = window.location.href.split(/\//).pop()) => {
     try {
-        const treeId = window.location.href.split(/\//).pop();
         const response = await fetch(`/api/trees/${treeId}`);
         if (response.status === 404) {
             throw Error("Tree not found :(");
         }
-        tree.value = await response.json();
+
+        tree = await response.json();
+        drawTree(tree);
     } catch (e) {
-        error.value = e.toString();
+        console.error(e);
     }
 }
 
-createApp({
-    setup() {
-        getTree();
-
-        return {
-            tree,
-            error
-        };
-    }
-}).mount('#app');
+getTree();

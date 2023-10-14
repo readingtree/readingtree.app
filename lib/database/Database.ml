@@ -54,6 +54,17 @@ let encode_response ~(encoding : encoding_type) response =
   | `Not_Found -> Error (Not_found)
   | _ ->  Error (Request_error ((Hyper.status_to_string status) ^ " " ^ body))
 
+(** Create a view. *)
+let create_view ~db ~name ~json () =
+  let request =
+    make_request
+      ~meth:`PUT
+      ~body:(Json.to_string (`Assoc [("views", `Assoc [(name, json)])]))
+      (db_uri ^ "/" ^ db ^ "/_design/my_ddoc")
+  in
+  let* response = Http.run request in
+  response >>|= encode_response ~encoding:Json
+
 (** Create a database. This action is idempotent. *)
 let create_db ~name () =
   let request = make_request ~meth:`PUT (db_uri ^ "/" ^ name) in
