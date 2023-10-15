@@ -18,10 +18,22 @@ let index_view_handler request = Dream.html @@ View.Index.render request
 
 (** Render a tree page. JavaScript will pull the tree from the API. *)
 let tree_view_handler request =
-  Dream.html @@
-  View.Tree.render
-    ~scripts:["https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"]
-    request
+  let id = Dream.param request "id" in
+  match%lwt Database.find_doc ~db:"readingtree" ~id () with
+  | Ok (Json_response json) ->
+    begin
+      match Json.member "description" json with
+      | Ok (`String description) ->
+        Dream.html @@
+        View.Tree.render
+          ~scripts:["https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"]
+          ~description
+          request
+      | Ok _ -> Dream.html ~status:`Not_Found @@ View.NotFound.render request
+      | Error exn -> View.Exn.from_exn request exn
+    end
+  | Ok _ -> failwith "Unreachable"
+  | Error exn -> View.Exn.from_exn request exn
 
 (** Render the tree list view page *)
 let trees_list_view_handler request =
@@ -38,9 +50,9 @@ let trees_list_view_handler request =
         let trees =
           List.filter_map
             (fun tree ->
-               match Type.Tree.of_yojson tree with
-               | Ok t -> Some t
-               | Error e -> Dream.error (fun log -> log ~request "Encountered error in tree_list_view_handler: %s" e); None)
+               match (Json.member "_id" tree, Json.member "description" tree) with
+               | (Ok (`String id), Ok (`String description)) -> Some (id, description)
+               | _ -> Dream.error (fun log -> log ~request "Encountered error in tree_list_view_handler"); None)
             trees
         in
         Dream.html @@ View.Trees.render ~trees request

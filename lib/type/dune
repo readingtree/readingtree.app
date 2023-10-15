@@ -1,7 +1,0 @@
-(library
- (public_name readingtree.type)
- (name type)
- (libraries
-   yojson
-   ppx_deriving_yojson.runtime)
- (preprocess (pps ppx_deriving_yojson)))

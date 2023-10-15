@@ -73,7 +73,7 @@ let create_db ~name () =
 
 let find_doc ~db ~id () =
   let request =
-    let db_uri = (db_uri ^ "/" ^ db ^ "/" ^ id) in
+    let db_uri = (db_uri ^ "/" ^ db ^ "/" ^ id ^ "?include_docs=true") in
     make_request
       ~meth:`GET
       db_uri

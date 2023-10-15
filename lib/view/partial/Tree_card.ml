@@ -1,11 +1,9 @@
-module Tree = Type.Tree
-
-let render (tree : Tree.t) =
+let render ~id ~description =
   let open Tyxml.Html in
   div
     [ a
         ~a:[ a_class [ "text-primary" ]
-           ; a_href ("/trees/" ^ tree._id)
+           ; a_href ("/trees/" ^ id)
            ]
-        [ txt (match tree.title with Some s -> s | None -> "Unnamed") ]
+        [ txt description ]
     ]
