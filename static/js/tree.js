@@ -1,11 +1,33 @@
-const makeNodes = (t) => {
-    return [t, ...t.children].map(n => ({ id: n._id, label: n.book.title, shape: 'image', image: n.book.cover, tree: n }));
+const makeNodes = (t, edges) => {
+    const tos = edges.map(e => e.to);
+    const froms = edges.map(e => e.from);
+    const inverseRoots = froms.filter(x => !tos.includes(x));
+
+    return [t, ...t.children].map(n => {
+        // TODO: Also if we've read this already.
+        let border;
+        if (inverseRoots.includes(n._id)) {
+            border = '#0f0';
+        } else {
+            border = '#f00';
+        }
+        return {
+            id: n._id,
+            label: n.book.title,
+            shape: 'image',
+            image: n.book.cover,
+            tree: n,
+            color: {
+                border
+            }
+        };
+    });
 }
 
 const drawTree = (t) => {
     const treeContainer = document.getElementById('tree');
-    const nodes = Object.values(makeNodes(t));
     const edges = t.edges;
+    const nodes = Object.values(makeNodes(t, edges));
     const data = {
         nodes,
         edges
@@ -27,18 +49,17 @@ const drawTree = (t) => {
             solver: 'hierarchicalRepulsion',
         },
         nodes: {
-            borderWidth:0,
-            size:42,
+            size: 33,
             shape: 'image',
-            color: {
-                border: '#222'
-            },
             font: {
                 color: '#111',
                 size: 16,
                 strokeWidth: 1,
                 strokeColor: '#222'
-            }
+            },
+            shapeProperties: {
+                useBorderWithImage: true,
+            },
         },
         edges: {
             color: {
@@ -51,7 +72,6 @@ const drawTree = (t) => {
         layout: {
             hierarchical: {
                 direction: "UD",
-                sortMethod: "directed",
                 nodeSpacing: 400,
                 treeSpacing: 600
             }
