@@ -13,6 +13,37 @@ open Lwt.Syntax
 
 module Api = Api
 
+let add_edge_to_tree_handler request =
+  let tree_id = Dream.param request "id" in
+  match%lwt Dream.form ~csrf:true request with
+  | `Ok [ ("from", from)
+        ; ("to", _to) ] ->
+    begin
+      let new_edge = `Assoc [("to", `String _to); ("from", `String from)] in
+      match%lwt Database.find_doc ~db:"readingtree" ~id:tree_id () with
+      | Ok (Json_response ((`Assoc doc) as json)) ->
+        begin
+          match Json.member "edges" json with
+          | Ok (`List edges) ->
+            let to_save = (`Assoc (("edges", `List (new_edge :: edges)) :: (List.filter (fun (k, _) -> k <> "edges") doc))) in
+            begin
+              match%lwt Database.save_doc
+                          ~db:"readingtree"
+                          ~id:tree_id
+                          ~doc:to_save
+                          ()
+              with
+              | Ok _ -> Dream.redirect request ("/trees/" ^ tree_id)
+              | Error exn -> View.Exn.from_exn request exn
+            end
+          | Ok _ -> failwith "Unreachable"
+          | Error exn -> View.Exn.from_exn request exn
+        end
+      | Ok _ -> failwith "Unreachable"
+      | Error exn -> View.Exn.from_exn request exn
+    end
+  | _ -> Dream.html ~status:`Bad_Request @@ View.BadRequest.render request
+
 let add_book_to_tree_handler request =
   let tree_id = Dream.param request "id" in
   match%lwt Dream.form ~csrf:true request with
@@ -44,10 +75,11 @@ let add_book_to_tree_handler request =
             match Json.member "children" json with
             | Ok (`List children) ->
               begin
+                let to_save = (`Assoc (("children", `List (child :: children)) :: (List.filter (fun (k, _) -> k <> "children") doc))) in
                 match%lwt Database.save_doc
                   ~db:"readingtree"
                   ~id:tree_id
-                  ~doc:(`Assoc (("children", `List (child :: children)) :: doc))
+                  ~doc:to_save
                   ()
                 with
                 | Ok (_) -> Dream.redirect request ("/trees/" ^ tree_id)
