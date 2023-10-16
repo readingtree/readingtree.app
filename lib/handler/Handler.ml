@@ -13,6 +13,55 @@ open Lwt.Syntax
 
 module Api = Api
 
+let add_book_to_tree_handler request =
+  let tree_id = Dream.param request "id" in
+  match%lwt Dream.form ~csrf:true request with
+  | `Ok [ "author", author
+        ; "cover", cover
+        ; "id", _id
+        ; "isbn", isbn
+        ; "title", title
+        ]
+    ->
+      let child_book = `Assoc
+          [ ("title", `String title)
+          ; ("cover", `String cover)
+          ; ("isbn", `String isbn)
+          ; ("author", `String author)
+          ]
+      in
+      let child = `Assoc
+          [ ("_id", `String _id)
+          ; ("description", `String title)
+          ; ("typ", `String "tree")
+          ; ("book", child_book)
+          ]
+      in
+      begin
+        match%lwt Database.find_doc ~db:"readingtree" ~id:tree_id () with
+        | Ok (Json_response (`Assoc doc as json)) ->
+          begin
+            match Json.member "children" json with
+            | Ok (`List children) ->
+              begin
+                match%lwt Database.save_doc
+                  ~db:"readingtree"
+                  ~id:tree_id
+                  ~doc:(`Assoc (("children", `List (child :: children)) :: doc))
+                  ()
+                with
+                | Ok (_) -> Dream.redirect request ("/trees/" ^ tree_id)
+                | Error exn -> View.Exn.from_exn request exn
+              end
+            | _ -> Dream.empty `Internal_Server_Error
+          end
+        | Ok _ -> View.Exn.from_exn request (Failure "Unknown error.")
+        | Error exn -> View.Exn.from_exn request exn
+      end
+  | _ ->
+    Dream.html ~status:`Bad_Request
+    @@ View.BadRequest.render request
+
 (** Render the index page *)
 let index_view_handler request = Dream.html @@ View.Index.render request
 

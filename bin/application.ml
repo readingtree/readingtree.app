@@ -27,6 +27,7 @@ let () =
     ; D.scope "/trees" [ Middleware.Auth.redirect_unauthenticated ~referrer:true ~location:"/login" ]
         [ D.get "/:id" Handler.tree_view_handler
         ; D.get "" Handler.trees_list_view_handler
+        ; D.post "/:id/books" Handler.add_book_to_tree_handler
         ]
     ; D.any "/logout" (fun request -> Middleware.Auth.redirect_unauthenticated ~location:"/" Handler.logout_handler request )
     ; D.scope "/" [ Middleware.Auth.redirect_authenticated ~location:"/" ]
