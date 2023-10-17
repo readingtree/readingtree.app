@@ -17,6 +17,8 @@ let () =
   in
   let module D = Dream in
   D.run
+    ~interface:"0.0.0.0"
+    ~port:8080
   @@ D.logger
   @@ D.set_secret (D.to_base64url (D.random 32))
   @@ D.cookie_sessions
