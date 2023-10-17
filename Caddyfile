@@ -1,0 +1,7 @@
+readingtree.app {
+    reverse_proxy http://readingtree:8080
+}
+
+couchdb.readingtree.app {
+    reverse_proxy http://couchdb:5984
+}
