@@ -20,6 +20,8 @@ services:
   readingtree:
     build: .
     restart: unless-stopped
+    volumes:
+      - './static:/static'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080"]
       interval: 30
