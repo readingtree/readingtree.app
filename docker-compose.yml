@@ -14,9 +14,9 @@ services:
       - './couch_data:/opt/couchdb/data'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5984"]
-      interval: 30
-      timeout: 10s
-      retries: 3
+      interval: '30'
+      timeout: '10s'
+      retries: '3'
   readingtree:
     build: .
     restart: unless-stopped
@@ -24,9 +24,9 @@ services:
       - './static:/static'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080"]
-      interval: 30
-      timeout: 10s
-      retries: 3
+      interval: '30'
+      timeout: '10s'
+      retries: '3'
     env_file:
       - ".env"
     expose:

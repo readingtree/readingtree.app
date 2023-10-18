@@ -1,6 +1,7 @@
 let layout
       ~title:title_
       body_
+      ?(show_nav=true)
       ?(description="Readingtree.app the best place to learn cool stuff")
       ?(keywords=[])
       ?(scripts=[])
@@ -14,7 +15,7 @@ let layout
        ; meta ~a:[ a_name "keywords"; a_content ("Readingtree.app " ^ description ^ " " ^ (List.fold_left (fun a b -> a ^ " " ^ b) "" keywords)) ] ()
        ; meta ~a:[ a_name "author"; a_content "The Reading Tree team" ] ()
        ; meta ~a:[ a_name "viewport"; a_content "width=device-width, initial-scale=1" ] ()
-       ; link ~rel:[ `Stylesheet ] ~href:"/static/css/layout.css" ()
+       ; link ~rel:[ `Stylesheet ] ~href:"/static/css/app.css" ()
        ; link
            ~a:[ a_integrity "sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
               ; a_crossorigin `Anonymous ]
@@ -30,9 +31,11 @@ let layout
     )
     (body
        ~a:[]
-       [ Partial.Nav.render _request
-       ; div body_
-       ; div @@ List.map (fun s -> script ~a:[a_src s] (txt "")) scripts
-       ]
+       ((if show_nav then [Partial.Nav.render _request] else []) @
+        [ div
+            ~a:[ a_class [ "m-md-3" ] ]
+            body_
+        ; div @@ List.map (fun s -> script ~a:[a_src s] (txt "")) scripts
+        ])
     )
 

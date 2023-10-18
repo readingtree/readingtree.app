@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  couchdb:
+    image: couchdb:3.3.2
+    env_file:
+      - '.env'
+    ports:
+      - '5984:5984'
+    expose:
+      - '5984'
+    volumes:
+      - './couch_data:/opt/couchdb/data'

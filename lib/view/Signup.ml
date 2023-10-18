@@ -18,6 +18,7 @@ let render
           ; a_method `Post
           ]
           [ div
+              ~a:[ a_class [ "field-group" ] ]
               [ label [ txt "Username" ]
               ; input ~a:
                   [ a_input_type `Text
@@ -27,6 +28,7 @@ let render
                   ] ()
               ]
           ; div
+              ~a:[ a_class [ "field-group" ] ]
               [ label [ txt "Email" ]
               ; input ~a:
                   [ a_input_type `Email
@@ -36,6 +38,7 @@ let render
                   ] ()
               ]
           ; div
+              ~a:[ a_class [ "field-group" ] ]
               [ label [ txt "Password" ]
               ; input ~a:
                   [ a_input_type `Password
@@ -44,6 +47,7 @@ let render
                   ] ()
               ]
           ; div
+              ~a:[ a_class [ "field-group" ] ]
               [ label [ txt "Confirm Password" ]
               ; input ~a:
                   [ a_input_type `Password
@@ -52,7 +56,7 @@ let render
                   ] ()
               ]
           ; div [ Partial.Csrf.render request ]
-          ; div 
+          ; div
               [ button ~a:
                   [ a_class [ "btn"; "btn-primary" ] ]
                   [ txt "Sign Up" ]

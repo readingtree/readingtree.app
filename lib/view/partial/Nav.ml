@@ -7,7 +7,7 @@ let render request =
           ~a:[ a_class [ "nav-item" ] ]
           [ a ~a:[ a_href "/trees" ] [ txt "Your Trees" ] ]
       ; li
-          ~a:[ a_class [ "nav-item" ] ]
+          ~a:[ a_class [ "nav-item"; "ms-2" ] ]
           [ a ~a:[ a_href "/explore" ] [ txt "Explore" ] ]
       ]
     | None ->
@@ -15,7 +15,7 @@ let render request =
           ~a:[ a_class [ "nav-item" ] ]
           [ a ~a:[ a_href "/login" ] [ txt "Login" ] ]
       ; li
-          ~a:[ a_class [ "nav-item" ] ]
+          ~a:[ a_class [ "nav-item"; "ms-2" ] ]
           [ a ~a:[ a_href "/signup" ] [ txt "Sign-up" ] ]
       ]
   in
@@ -24,7 +24,7 @@ let render request =
     [
       div
         ~a:[ a_class [ "container-fluid" ] ]
-        [ a [ txt "Reading Tree"]
+        [ a ~a:[ a_class [ "navbar-brand" ]; a_href "/" ] [ txt "Reading Tree"]
         ; button
             ~a:[ a_class [ "navbar-toggler" ]
                ; Unsafe.string_attrib "type" "button"
@@ -40,7 +40,7 @@ let render request =
                ; a_id "navbar-supported-content"
                ]
             [ ul
-                ~a:[ a_class [ "navbar-nav"; "me-auto"; "mb-2"; "mb-2" ] ]
+                ~a:[ a_class [ "navbar-nav" ] ]
                 nav_list
             ]
         ]

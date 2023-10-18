@@ -16,7 +16,7 @@ let layout
         ; meta ~a:[ a_name "keywords"; a_content ("Readingtree.app " ^ description ^ " " ^ (List.fold_left (fun a b -> a ^ " " ^ b) "" keywords)) ] ()
         ; meta ~a:[ a_name "author"; a_content "The Reading Tree team" ] ()
         ; meta ~a:[ a_name "viewport"; a_content "width=device-width, initial-scale=1" ] ()
-        ; link ~rel:[ `Stylesheet ] ~href:"/static/css/layout.css" ()
+        ; link ~rel:[ `Stylesheet ] ~href:"/static/css/app.css" ()
         ; link
             ~a:[ a_integrity "sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
                ; a_crossorigin `Anonymous ]
