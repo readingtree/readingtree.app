@@ -27,11 +27,12 @@ let () =
   @@ D.router
     [ D.get "/static/**" @@ D.static "static"
     ; D.get "/" Handler.index_view_handler
-    ; D.scope "/trees" [ Middleware.Auth.redirect_unauthenticated ~referrer:true ~location:"/login" ]
+    ; D.scope "/trees" []
         [ D.get "/:id" Handler.tree_view_handler
-        ; D.post "/:id/books" (fun request -> Middleware.Auth.requires_role ~role:"admin" Handler.add_book_to_tree_handler request)
-        ; D.post "/:id/edges" (fun request -> Middleware.Auth.requires_role ~role:"admin" Handler.add_edge_to_tree_handler request)
+        ; D.post "/:id/books" @@ Middleware.Auth.requires_role ~role:"admin" Handler.add_book_to_tree_handler
+        ; D.post "/:id/edges" @@ Middleware.Auth.requires_role ~role:"admin" Handler.add_edge_to_tree_handler
         ; D.get "" Handler.trees_list_view_handler
+        ; D.get "/" Handler.trees_list_view_handler
         ]
     ; D.any "/logout" (fun request -> Middleware.Auth.redirect_unauthenticated ~location:"/" Handler.logout_handler request )
     ; D.scope "/" [ Middleware.Auth.redirect_authenticated ~location:"/" ]

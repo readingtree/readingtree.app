@@ -24,7 +24,7 @@ let render request =
     [
       div
         ~a:[ a_class [ "container-fluid" ] ]
-        [ a ~a:[ a_class [ "navbar-brand" ]; a_href "/" ] [ txt "Reading Tree"]
+        [ a ~a:[ a_class [ "navbar-brand"; "display-4" ]; a_href "/" ] [ txt "Reading Tree"]
         ; button
             ~a:[ a_class [ "navbar-toggler" ]
                ; Unsafe.string_attrib "type" "button"
