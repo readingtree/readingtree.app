@@ -86,6 +86,7 @@ let render
                   [ a_class [ "btn"; "btn-primary"; "my-3" ] ]
                   [ txt "Sign Up" ]
               ]
+          ; div ~a: [ a_class [ "text-danger" ] ] formatted_errors
           ; small
               [ txt "Have an account already? "
               ; a ~a:
@@ -102,7 +103,6 @@ let render
                   [ txt "here" ]
               ; txt " to go home."
               ]
-          ; div ~a: [ a_class [ "text-danger" ] ] formatted_errors
           ; hr ()
           ; Partial.Login_agreement.render ()
           ]

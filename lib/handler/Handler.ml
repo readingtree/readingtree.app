@@ -235,10 +235,11 @@ let login_handler request =
             let* () = Dream.set_session_field request "user" id in
             let* () = Dream.set_session_field request "user_name" name in
             let* () = Dream.set_session_field request "role" role in
+            let () = Dream.add_flash_message request "success" "You logged in successfully." in
             Dream.redirect request referrer
           | Ok (`List []) ->
             Dream.html ~status:`Not_Found
-            @@ View.Login.render request ~errors:[("login", "We couldn't find a user that matches those credentials.")]
+            @@ View.Login.render request ~username:name ~errors:[("login", "We couldn't find a user that matches those credentials.")]
           | Ok _ -> failwith "Unreachable"
           | Error exn -> View.Exn.from_exn request exn
         end

@@ -1,5 +1,6 @@
 let render
     ?(errors=[])
+    ?(username="")
     request
   =
   let open Tyxml.Html in
@@ -29,6 +30,7 @@ let render
                   ; a_class [ "form-control" ]
                   ; a_id "username"
                   ; a_name "name"
+                  ; a_value username
                   ; a_required ()
                   ] ()
               ]

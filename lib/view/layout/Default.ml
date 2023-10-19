@@ -11,8 +11,29 @@ let layout
     Dream.flash_messages _request
     |> List.map (fun (t, text) ->
         div
-          ~a:[ a_class [ "alert"; "alert-" ^ t ] ]
-          [ txt text ]
+          ~a:[ a_class
+                 [ "flex"
+                 ; "alert"
+                 ; "alert-" ^ t
+                 ; "alert-dismissable"
+                 ; "fade"
+                 ; "show"
+                 ; "justify-content-between"
+                 ; "position-fixed"
+                 ; "bottom-0"
+                 ; "end-0"
+                 ]
+             ; a_role [ "alert" ]
+             ]
+          [ txt text
+          ; button
+              ~a:[ a_button_type `Button
+                 ; a_class [ "btn-close" ]
+                 ; Unsafe.string_attrib "data-bs-dismiss" "alert"
+                 ; Unsafe.string_attrib "aria-label" "Close"
+                 ]
+              []
+          ]
       )
   in
   html
@@ -44,7 +65,8 @@ let layout
         ; div
             ~a:[ a_class [ "m-md-3" ] ]
             body_
-        ; div @@ List.map (fun s -> script ~a:[a_src s] (txt "")) scripts
+        ; script ~a:[ a_src "/static/js/alert.js" ] (txt "")
+        ; div @@ List.map (fun s -> script ~a:[ a_src s ] (txt "")) scripts
         ])
     )
 
