@@ -22,6 +22,7 @@ let () =
   @@ D.logger
   @@ D.set_secret (D.to_base64url (D.random 32))
   @@ D.cookie_sessions
+  @@ D.flash
   @@ Middleware.Global.exception_handler
   @@ D.router
     [ D.get "/static/**" @@ D.static "static"

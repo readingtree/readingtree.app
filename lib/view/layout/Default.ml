@@ -7,6 +7,14 @@ let layout
       ?(scripts=[])
       _request =
   let open Tyxml.Html in
+  let flashes =
+    Dream.flash_messages _request
+    |> List.map (fun (t, text) ->
+        div
+          ~a:[ a_class [ "alert"; "alert-" ^ t ] ]
+          [ txt text ]
+      )
+  in
   html
     ~a:[ a_lang "en" ]
     (head
@@ -32,7 +40,8 @@ let layout
     (body
        ~a:[]
        ((if show_nav then [Partial.Nav.render _request] else []) @
-        [ div
+        [ div flashes
+        ; div
             ~a:[ a_class [ "m-md-3" ] ]
             body_
         ; div @@ List.map (fun s -> script ~a:[a_src s] (txt "")) scripts

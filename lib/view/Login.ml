@@ -76,17 +76,7 @@ let render
               ; txt " to go home."
               ]
           ; hr ()
-          ; small
-              [ txt "By logging you, you accept our "
-              ; a ~a:
-                  [ a_href "/privacy" ]
-                  [ txt "privacy policy" ]
-              ; txt " and our "
-              ; a ~a:
-                  [ a_href "/tos" ]
-                  [ txt "terms of service" ]
-              ; txt "."
-              ]
+          ; Partial.Login_agreement.render ()
           ]
       ]
       request

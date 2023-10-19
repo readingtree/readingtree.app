@@ -173,7 +173,9 @@ let signup_handler request =
                 )
               in
               match%lwt Database.create_doc ~db:"users" ~doc:user () with
-              | Ok () -> Dream.redirect request "/login"
+              | Ok () ->
+                let () = Dream.add_flash_message request "success" "You signed up successfully. Please log in." in
+                Dream.redirect request "/login"
               | Error _ ->
                 Dream.html ~status:`Internal_Server_Error
                 @@ View.Signup.render ~name ~email ~errors:[("server", "Something went wrong creating your account try again later")] request
