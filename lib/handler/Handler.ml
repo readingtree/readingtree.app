@@ -131,8 +131,13 @@ let trees_list_view_handler request =
         let trees =
           List.filter_map
             (fun tree ->
-               match (Json.member "_id" tree, Json.member "description" tree) with
-               | (Ok (`String id), Ok (`String description)) -> Some (id, description)
+               match ( Json.member "_id" tree
+                     , Json.member "description" tree
+                     , Json.member "children" tree)
+               with
+               | ( Ok (`String id)
+                 , Ok (`String description)
+                 , Ok (`List children) ) -> Some (id, description, (List.length children))
                | _ -> Dream.error (fun log -> log ~request "Encountered error in tree_list_view_handler"); None)
             trees
         in

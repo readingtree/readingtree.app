@@ -13,7 +13,7 @@ const makeNodes = (t, edges) => {
         }
         return {
             id: n._id,
-            label: n.book.title,
+            _label: n.book.title,
             shape: 'image',
             image: n.book.cover,
             tree: n,
@@ -26,8 +26,8 @@ const makeNodes = (t, edges) => {
 
 const drawTree = (t) => {
     const treeContainer = document.getElementById('tree');
-    const edges = t.edges;
-    const nodes = Object.values(makeNodes(t, edges));
+    const edges = new vis.DataSet(t.edges);
+    const nodes = new vis.DataSet(Object.values(makeNodes(t, edges)));
     const data = {
         nodes,
         edges
@@ -40,13 +40,11 @@ const drawTree = (t) => {
         },
         physics: {
             enabled: true,
-            hierarchicalRepulsion: {
-                centralGravity: 0.0,
-                springLength: 250,
-                springConstant: 0.01,
-                nodeDistance: 500
+            forceAtlas2Based: {
+                springLength: 1000,
+                avoidOverlap: 0.3
             },
-            solver: 'hierarchicalRepulsion',
+            solver: 'forceAtlas2Based'
         },
         nodes: {
             size: 33,
@@ -70,26 +68,34 @@ const drawTree = (t) => {
             length: 300
         },
         layout: {
-            hierarchical: {
-                direction: "UD",
-                nodeSpacing: 400,
-                treeSpacing: 600
-            }
+            randomSeed: 5
+        },
+        interaction: {
+            hover: true
         }
     };
 
     const network = new vis.Network(treeContainer, data, options);
-    // Network configurations
-    network.on("stabilizationIterationsDone", function(){
-        network.setOptions( { physics: false } );
-    });
 
-    network.on("hoverNode", function (params) {
+    network.on('hoverNode', function (params) {
+        console.log("foo");
         network.canvas.body.container.style.cursor = 'pointer'
     });
 
-    network.on("blurNode", function (params) {
+    network.on('blurNode', function (params) {
+        console.log("foo123");
         network.canvas.body.container.style.cursor = 'default'
+    });
+
+    network.on('click', properties => {
+        const ids = properties.nodes;
+        const clickedNode = nodes.get(ids)[0];
+
+        if (!clickedNode) return;
+
+        nodes.update({ ...clickedNode, label: clickedNode._label });
+
+        console.log(clickedNode);
     });
 }
 
