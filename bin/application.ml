@@ -26,7 +26,7 @@ let () =
   @@ Middleware.Global.exception_handler
   @@ D.router
     [ D.get "/static/**" @@ D.static "static"
-    ; D.get "/" Handler.index_view_handler
+    ; D.get "/" Handler.trees_list_view_handler
     ; D.scope "/trees" []
         [ D.get "/:id" Handler.tree_view_handler
         ; D.post "/:id/books" @@ Middleware.Auth.requires_role ~role:"admin" Handler.add_book_to_tree_handler

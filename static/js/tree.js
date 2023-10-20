@@ -5,22 +5,23 @@ const makeNodes = (t, edges) => {
 
     return [t, ...t.children].map(n => {
         // TODO: Also if we've read this already.
-        let border;
-        if (inverseRoots.includes(n._id)) {
-            border = '#0f0';
-        } else {
-            border = '#f00';
-        }
-        return {
+        const treeNode = {
             id: n._id,
             _label: n.book.title,
             shape: 'image',
             image: n.book.cover,
             tree: n,
-            color: {
-                border
-            }
+            color: {}
         };
+        if (inverseRoots.includes(n._id)) {
+            treeNode.color.border = '#0f0';
+            treeNode.unlocked = true;
+        } else {
+            treeNode.color.border = '#f00';
+            treeNode.unlocked = false;
+        }
+
+        return treeNode;
     });
 }
 
@@ -36,13 +37,18 @@ const drawTree = (t) => {
     const options = {
         interaction: {
             dragNodes: false,
-            dragView: true
+            dragView: true,
+            hover: true
         },
         physics: {
             enabled: true,
+            stabilization: {
+                enabled: true,
+                iterations: 100
+            },
             forceAtlas2Based: {
                 springLength: 1000,
-                avoidOverlap: 0.3
+                avoidOverlap: 1
             },
             solver: 'forceAtlas2Based'
         },
@@ -61,17 +67,16 @@ const drawTree = (t) => {
         },
         edges: {
             color: {
-                color: '#CCC'
+                color: '#CCC',
+                hover: '#CCC'
             },
             arrows: "to",
             width: 2,
-            length: 300
+            length: 300,
+            hoverWidth: 0
         },
         layout: {
             randomSeed: 5
-        },
-        interaction: {
-            hover: true
         }
     };
 
@@ -87,13 +92,12 @@ const drawTree = (t) => {
         network.canvas.body.container.style.cursor = 'default'
     });
 
-    network.on('click', properties => {
-        const ids = properties.nodes;
-        const clickedNode = nodes.get(ids)[0];
-
+    network.on('selectNode', clickedObject => {
+        const clickedNode = nodes.get(clickedObject.nodes[0]);
         if (!clickedNode) return;
 
-        nodes.update({ ...clickedNode, label: clickedNode._label });
+        if (clickedNode.unlocked)
+            nodes.update({ ...clickedNode, label: clickedNode._label });
 
         console.log(clickedNode);
     });
