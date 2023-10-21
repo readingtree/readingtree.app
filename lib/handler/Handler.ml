@@ -261,6 +261,6 @@ let logout_handler request =
   let* () = Dream.invalidate_session request in
   Dream.redirect request "/login"
 
-let policy_handler request = Dream.html @@ View.Policy.render request
+let privacy_policy_handler request = Dream.html @@ View.PrivacyPolicy.render request
 
 let terms_of_service_handler request = Dream.html @@ View.TermsOfService.render request
