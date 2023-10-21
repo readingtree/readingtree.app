@@ -1,4 +1,4 @@
-let render ~id ~description =
+let render ~id ~description ~num_nodes =
   let open Tyxml.Html in
   div
     [ a
@@ -6,4 +6,5 @@ let render ~id ~description =
            ; a_href ("/trees/" ^ id)
            ]
         [ txt description ]
+    ; txt (" - " ^ (string_of_int num_nodes) ^ " nodes.")
     ]

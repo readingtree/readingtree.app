@@ -5,29 +5,30 @@ const makeNodes = (t, edges) => {
 
     return [t, ...t.children].map(n => {
         // TODO: Also if we've read this already.
-        let border;
-        if (inverseRoots.includes(n._id)) {
-            border = '#0f0';
-        } else {
-            border = '#f00';
-        }
-        return {
+        const treeNode = {
             id: n._id,
-            label: n.book.title,
+            _label: n.book.title,
             shape: 'image',
             image: n.book.cover,
             tree: n,
-            color: {
-                border
-            }
+            color: {}
         };
+        if (inverseRoots.includes(n._id)) {
+            treeNode.color.border = '#0f0';
+            treeNode.unlocked = true;
+        } else {
+            treeNode.color.border = '#f00';
+            treeNode.unlocked = false;
+        }
+
+        return treeNode;
     });
 }
 
 const drawTree = (t) => {
     const treeContainer = document.getElementById('tree');
-    const edges = t.edges;
-    const nodes = Object.values(makeNodes(t, edges));
+    const edges = new vis.DataSet(t.edges);
+    const nodes = new vis.DataSet(Object.values(makeNodes(t, edges)));
     const data = {
         nodes,
         edges
@@ -36,17 +37,20 @@ const drawTree = (t) => {
     const options = {
         interaction: {
             dragNodes: false,
-            dragView: true
+            dragView: true,
+            hover: true
         },
         physics: {
             enabled: true,
-            hierarchicalRepulsion: {
-                centralGravity: 0.0,
-                springLength: 250,
-                springConstant: 0.01,
-                nodeDistance: 500
+            stabilization: {
+                enabled: true,
+                iterations: 100
             },
-            solver: 'hierarchicalRepulsion',
+            forceAtlas2Based: {
+                springLength: 1000,
+                avoidOverlap: 1
+            },
+            solver: 'forceAtlas2Based'
         },
         nodes: {
             size: 33,
@@ -63,33 +67,39 @@ const drawTree = (t) => {
         },
         edges: {
             color: {
-                color: '#CCC'
+                color: '#CCC',
+                hover: '#CCC'
             },
             arrows: "to",
             width: 2,
-            length: 300
+            length: 300,
+            hoverWidth: 0
         },
         layout: {
-            hierarchical: {
-                direction: "UD",
-                nodeSpacing: 400,
-                treeSpacing: 600
-            }
+            randomSeed: 5
         }
     };
 
     const network = new vis.Network(treeContainer, data, options);
-    // Network configurations
-    network.on("stabilizationIterationsDone", function(){
-        network.setOptions( { physics: false } );
-    });
 
-    network.on("hoverNode", function (params) {
+    network.on('hoverNode', function (params) {
+        console.log("foo");
         network.canvas.body.container.style.cursor = 'pointer'
     });
 
-    network.on("blurNode", function (params) {
+    network.on('blurNode', function (params) {
+        console.log("foo123");
         network.canvas.body.container.style.cursor = 'default'
+    });
+
+    network.on('selectNode', clickedObject => {
+        const clickedNode = nodes.get(clickedObject.nodes[0]);
+        if (!clickedNode) return;
+
+        if (clickedNode.unlocked)
+            nodes.update({ ...clickedNode, label: clickedNode._label });
+
+        console.log(clickedNode);
     });
 }
 
