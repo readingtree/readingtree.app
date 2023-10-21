@@ -16,7 +16,7 @@ let render
       ; div ~a:[ a_class [ "vw-100"; "vh-100" ]; a_id "tree" ] []
       ; Partial.Modal.render
           ~id:"book-modal"
-          ~title:"Book"
+          ~title:""
           ~content:[]
           ~footer:
             [ button

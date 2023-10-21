@@ -63,7 +63,7 @@ let layout
        ((if show_nav then [Partial.Nav.render _request] else []) @
         [ div flashes
         ; div
-            ~a:[ a_class [ "m-md-3" ] ]
+            ~a:[ a_class [ "m-md-2"; "m-sm-1" ] ]
             body_
         ; script ~a:[ a_src "/static/js/alert.js" ] (txt "")
         ; div @@ List.map (fun s -> script ~a:[ a_src s ] (txt "")) scripts
