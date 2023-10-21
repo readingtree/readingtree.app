@@ -107,7 +107,7 @@ let tree_view_handler request =
       | Ok (`String description) ->
         Dream.html @@
         View.Tree.render
-          ~scripts:[ "https://unpkg.com/vis-network@9.1.8/dist/vis-network.min.js"]
+          ~scripts:[ "https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.8/standalone/umd/vis-network.min.js" ]
           ~description
           request
       | Ok _ -> Dream.html ~status:`Not_Found @@ View.NotFound.render request
