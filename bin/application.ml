@@ -45,4 +45,6 @@ let () =
         [ D.get "/trees" @@ Handler.Api.get_trees_paginated_handler
         ; D.get "/trees/:id" @@ Handler.Api.get_tree_by_id_handler
         ]
+    ; D.any "/privacy" @@ Handler.privacy_policy_handler
+    ; D.any "/tos" @@ Handler.terms_of_service_handler
     ]
