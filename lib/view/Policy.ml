@@ -4,7 +4,7 @@ let render request =
     Layout.Default.layout
       ~title:"Privacy Policy"
       [ h1 [ txt "Privacy Policy" ] 
-      ; p [ txt "Your Company Name (referred to as \"we\", \"us\", or \"our\") operates the website located at www.example.com (the \"Site\"). This page informs you of our policies regarding the collection, use, and disclosure of personal information we receive from users of the Site." ]
+      ; p [ txt "Reading Tree (referred to as \"we\", \"us\", or \"our\") operates the website located at readingtree.app (the \"Site\"). This page informs you of our policies regarding the collection, use, and disclosure of personal information we receive from users of the Site." ]
       ; h2 [ txt "Information Collection and Use" ]
       ; p [ txt "While using our Site, we may ask you to provide us with certain personally identifiable information that can be used to contact or identify you. Personally identifiable information may include, but is not limited to, your name, email address, and other information (\"Personal Information\"). " ]
       ; h2 [ txt "Log Data" ]
@@ -14,7 +14,7 @@ let render request =
       ; h2 [ txt "Security" ]
       ; p [ txt "The security of your Personal Information is important to us, but remember that no method of transmission over the Internet, or method of electronic storage, is 100% secure. While we strive to use commercially acceptable means to protect your Personal Information, we cannot guarantee its absolute security." ]
       ; h2 [ txt "Changes to This Privacy Policy" ]
-      ; p [ txt "This Privacy Policy is effective as of October 19, 2023 and will remain in effect except with respect to any changes in its provisions in the future, which will be in effect immediately after being posted on this page." ]
+      ; p [ txt "This Privacy Policy is effective as of October 21, 2023 and will remain in effect except with respect to any changes in its provisions in the future, which will be in effect immediately after being posted on this page." ]
       ; h2 [ txt "Contact Us" ]
       ; p [ txt "If you have any questions about this Privacy Policy, please contact us at contact@readingtree.app." ]
       ]
