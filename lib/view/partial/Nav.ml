@@ -3,19 +3,26 @@ let render request =
   let nav_list =
     match Dream.session_field request "user" with
     | Some _ ->
+      let user_id = Option.get @@ Dream.session_field request "user" in
       [ li
           ~a:[ a_class [ "nav-item" ] ]
-          [ a ~a:[ a_href "/trees" ] [ txt "Your Trees" ] ]
+          [ a ~a:[ a_href "/trees" ] [ txt "Trees" ] ]
       ; li
-          ~a:[ a_class [ "nav-item"; "ms-2" ] ]
-          [ a ~a:[ a_href "/explore" ] [ txt "Explore" ] ]
+          ~a:[ a_class [ "nav-item"; "ms-md-2" ] ]
+          [ a ~a:[ a_href ("/profile/" ^ user_id) ] [ txt "profile" ] ]
+      ; li
+          ~a:[ a_class [ "nav-item"; "ms-md-2" ] ]
+          [ a ~a:[ a_href "/logout" ] [ txt "Logout" ] ]
       ]
     | None ->
       [ li
           ~a:[ a_class [ "nav-item" ] ]
+          [ a ~a:[ a_href "/trees" ] [ txt "Trees" ] ]
+      ; li
+          ~a:[ a_class [ "nav-item"; "ms-md-2" ] ]
           [ a ~a:[ a_href "/login" ] [ txt "Login" ] ]
       ; li
-          ~a:[ a_class [ "nav-item"; "ms-2" ] ]
+          ~a:[ a_class [ "nav-item"; "ms-md-2" ] ]
           [ a ~a:[ a_href "/signup" ] [ txt "Sign-up" ] ]
       ]
   in

@@ -1,3 +1,16 @@
+const showModal = (t) => {
+    const rawElem = document.getElementById('book-modal');
+    rawElem.addEventListener('hidden.bs.modal', _ => {
+        modalElem.dispose();
+    });
+
+    const modalElem = new bootstrap.Modal(rawElem);
+
+    rawElem.querySelector('modal-body');
+
+    modalElem.toggle();
+}
+
 const makeNodes = (t, edges) => {
     const tos = edges.map(e => e.to);
     const froms = edges.map(e => e.from);
@@ -41,14 +54,12 @@ const drawTree = (t) => {
             hover: true
         },
         physics: {
-            enabled: true,
             stabilization: {
                 enabled: true,
                 iterations: 100
             },
             forceAtlas2Based: {
-                springLength: 1000,
-                avoidOverlap: 1
+                avoidOverlap: 0.1
             },
             solver: 'forceAtlas2Based'
         },
@@ -83,12 +94,10 @@ const drawTree = (t) => {
     const network = new vis.Network(treeContainer, data, options);
 
     network.on('hoverNode', function (params) {
-        console.log("foo");
         network.canvas.body.container.style.cursor = 'pointer'
     });
 
     network.on('blurNode', function (params) {
-        console.log("foo123");
         network.canvas.body.container.style.cursor = 'default'
     });
 
@@ -96,10 +105,18 @@ const drawTree = (t) => {
         const clickedNode = nodes.get(clickedObject.nodes[0]);
         if (!clickedNode) return;
 
-        if (clickedNode.unlocked)
+        if (clickedNode.unlocked) {
+            showModal(clickedNode);
             nodes.update({ ...clickedNode, label: clickedNode._label });
+        }
 
-        console.log(clickedNode);
+    });
+
+    network.on('deselectNode', clickedObject => {
+        const clickedNode = nodes.get(clickedObject.previousSelection.nodes[0].id);
+
+        if (!clickedNode) return;
+        nodes.update({ ...clickedNode, label: "" });
     });
 }
 
@@ -112,6 +129,7 @@ const getTree = async (treeId = window.location.href.split(/\//).pop()) => {
 
         drawTree(await response.json());
     } catch (e) {
+        document.querySelector('#app').innerHTML = `<p class="text-danger">${e.toString()}</p> <a href="/">Click here to go home</a>.`;
         console.error(e);
     }
 }
