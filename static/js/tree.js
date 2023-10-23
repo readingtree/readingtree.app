@@ -85,10 +85,8 @@ const drawTree = (t) => {
                 enabled: true,
                 iterations: 100
             },
-            forceAtlas2Based: {
-                avoidOverlap: 0.1
-            },
-            solver: 'forceAtlas2Based'
+            solver: 'forceAtlas2Based',
+            maxVelocity: 0
         },
         nodes: {
             size: 33,
@@ -123,12 +121,12 @@ const drawTree = (t) => {
     network.on('hoverNode', function (params) {
         const node = nodes.get(params.node);
         if (node && node.unlocked) {
-            network.canvas.body.container.style.cursor = 'pointer'
+            network.canvas.body.container.style.cursor = 'pointer';
         }
     });
 
     network.on('blurNode', function (params) {
-        network.canvas.body.container.style.cursor = 'default'
+        network.canvas.body.container.style.cursor = 'default';
     });
 
     network.on('selectNode', clickedObject => {
@@ -167,7 +165,9 @@ const getTree = async (treeId = window.location.href.split(/\//).pop()) => {
 
         drawTree(await response.json());
     } catch (e) {
-        document.querySelector('#app').innerHTML = `<p class="text-danger">${e.toString()}</p> <a href="/">Click here to go home</a>.`;
+        document.querySelector('#app').innerHTML = '';
+        document.querySelector('#app')
+            .appendChild(document.createTextNode(`An unknown error occurred: ${e.toString()}.`));
         console.error(e);
     }
 }
