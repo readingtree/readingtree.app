@@ -1,15 +1,39 @@
-const showModal = (t) => {
+const showModal = (t, network) => {
     const rawElem = document.getElementById('book-modal');
-    rawElem.addEventListener('hidden.bs.modal', _ => {
-        modalElem.dispose();
+    rawElem.addEventListener('hide.bs.modal', _ => {
+        rawElem.querySelector('.modal-title').innerHTML = "";
+        rawElem.querySelector('.modal-body').innerHTML = "";
+        network.selectNodes([]); // Hack to deselect the node.
     });
 
     const modalElem = new bootstrap.Modal(rawElem);
 
-    rawElem.querySelector('modal-body');
+    const generateInnerHtml = (root) => {
+        const book = t.tree.book;
+        const image = document.createElement('img');
+        image.src = t['image'];
+        image.style = 'width: 220px; height: 309px; display: block; margin-left: auto; margin-right: auto;'
+        image.classList.add('my-3');
+        root.appendChild(image);
+
+        for (const key of ['Author', 'ISBN']) {
+            const div = document.createElement('div');
+            const label = document.createElement('strong');
+            label.innerText = key + ': ';
+            div.appendChild(label);
+            div.appendChild(document.createTextNode(book[key.toLowerCase()]));
+            root.appendChild(div);
+        }
+    };
+
+    const headerElem = rawElem.querySelector('.modal-title');
+    headerElem.innerText = t._label;
+
+    const bodyElem = rawElem.querySelector('.modal-body');
+    generateInnerHtml(bodyElem);
 
     modalElem.toggle();
-}
+};
 
 const makeNodes = (t, edges) => {
     const tos = edges.map(e => e.to);
@@ -24,13 +48,16 @@ const makeNodes = (t, edges) => {
             shape: 'image',
             image: n.book.cover,
             tree: n,
-            color: {}
+            borderWidth: 3,
+            color: {},
+            interaction: {}
         };
         if (inverseRoots.includes(n._id)) {
-            treeNode.color.border = '#0f0';
+            treeNode.color.border = '#D1D1D1';
             treeNode.unlocked = true;
         } else {
-            treeNode.color.border = '#f00';
+            treeNode.color.border = '#FF6961';
+            treeNode.interaction.hover = false;
             treeNode.unlocked = false;
         }
 
@@ -58,10 +85,8 @@ const drawTree = (t) => {
                 enabled: true,
                 iterations: 100
             },
-            forceAtlas2Based: {
-                avoidOverlap: 0.1
-            },
-            solver: 'forceAtlas2Based'
+            solver: 'forceAtlas2Based',
+            maxVelocity: 0
         },
         nodes: {
             size: 33,
@@ -94,11 +119,14 @@ const drawTree = (t) => {
     const network = new vis.Network(treeContainer, data, options);
 
     network.on('hoverNode', function (params) {
-        network.canvas.body.container.style.cursor = 'pointer'
+        const node = nodes.get(params.node);
+        if (node && node.unlocked) {
+            network.canvas.body.container.style.cursor = 'pointer';
+        }
     });
 
     network.on('blurNode', function (params) {
-        network.canvas.body.container.style.cursor = 'default'
+        network.canvas.body.container.style.cursor = 'default';
     });
 
     network.on('selectNode', clickedObject => {
@@ -106,10 +134,18 @@ const drawTree = (t) => {
         if (!clickedNode) return;
 
         if (clickedNode.unlocked) {
-            showModal(clickedNode);
-            nodes.update({ ...clickedNode, label: clickedNode._label });
+            showModal(clickedNode, network);
         }
 
+    });
+
+    network.on('click', ({ nodes, edges }) => {
+        if (nodes.length == 0 && edges.length > 0) {
+            network.setSelection({
+                nodes: [],
+                edges: []
+            });
+        }
     });
 
     network.on('deselectNode', clickedObject => {
@@ -129,7 +165,9 @@ const getTree = async (treeId = window.location.href.split(/\//).pop()) => {
 
         drawTree(await response.json());
     } catch (e) {
-        document.querySelector('#app').innerHTML = `<p class="text-danger">${e.toString()}</p> <a href="/">Click here to go home</a>.`;
+        document.querySelector('#app').innerHTML = '';
+        document.querySelector('#app')
+            .appendChild(document.createTextNode(`An unknown error occurred: ${e.toString()}.`));
         console.error(e);
     }
 }

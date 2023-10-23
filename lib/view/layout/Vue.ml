@@ -34,10 +34,10 @@ let layout
         ] @ (List.map (fun href -> link ~rel:[ `Stylesheet ] ~href ()) styles))
     )
     (body
-       ~a:[ a_class [ "min-vh-100"; "min-vw-100"] ]
+       ~a:[ a_class [ "min-vh-100"; "min-vw-100" ] ]
        ([ Partial.Nav.render _request
         ; div
-            ~a:[ a_class [ "w-100 h-100" ]; a_id "app" ]
+            ~a:[ a_class [ "w-100"; "h-100"; "m-md-2"; "m-sm-1" ]; a_id "app" ]
             body_
         ]
         @
