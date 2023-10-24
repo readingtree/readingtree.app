@@ -1,3 +1,7 @@
+const getReadBooks = () => {
+    
+}
+
 const showModal = (t, network) => {
     const rawElem = document.getElementById('book-modal');
     rawElem.addEventListener('hide.bs.modal', _ => {

@@ -1,4 +1,5 @@
 let render
+    ?(read_books=[])
     ?(scripts=[])
     ?(styles=[])
     ~description
@@ -9,6 +10,7 @@ let render
     Layout.Vue.layout
       ~init:"tree.js"
       ~title:"Reading Tree"
+      ~read_books
       ~scripts
       ~styles
       [ h1 [ txt description ]

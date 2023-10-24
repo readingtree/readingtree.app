@@ -100,13 +100,31 @@ let index_view_handler request = Dream.html @@ View.Index.render request
 (** Render a tree page. JavaScript will pull the tree from the API. *)
 let tree_view_handler request =
   let id = Dream.param request "id" in
-  match%lwt Database.find_doc ~db:"readingtree" ~id () with
+  let* tree = Database.find_doc ~db:"readingtree" ~id () in
+  let* read_books =
+    let return = Lwt.return in
+    match Dream.session_field request "user" with
+    | Some id ->
+      begin
+        match%lwt Database.find_doc ~db:"user" ~id () with
+        | Ok (Json_response json) ->
+          begin
+            match Json.member "books" json with
+            | Ok (`List books) -> return books
+            | _ -> return []
+          end
+        | _ -> return []
+      end
+    | None -> return []
+  in
+  match tree with
   | Ok (Json_response json) ->
     begin
       match Json.member "description" json with
       | Ok (`String description) ->
         Dream.html @@
         View.Tree.render
+          ~read_books
           ~scripts:[ "https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.8/standalone/umd/vis-network.min.js" ]
           ~description
           request

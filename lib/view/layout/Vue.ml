@@ -1,6 +1,7 @@
 let layout
     ~title:title_
     body_
+    ?(read_books=[])
     ?(init="vue.js")
     ?(description="Readingtree.app the best place to learn cool stuff")
     ?(keywords=[])
@@ -42,5 +43,8 @@ let layout
         ]
         @
         (List.map (fun s -> script ~a:[ a_src s ] (txt "")) scripts)
-        @ [script ~a:[ a_src ("/static/js/" ^ init) ] (txt "")])
+        @ [ script ~a:[ a_src ("/static/js/" ^ init) ] (txt "")
+          ; script (txt ("const READ_BOOKS = " ^ (Json.to_string (`List read_books))))
+          ]
+       )
     )
