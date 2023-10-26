@@ -106,7 +106,7 @@ let tree_view_handler request =
     match Dream.session_field request "user" with
     | Some id ->
       begin
-        match%lwt Database.find_doc ~db:"user" ~id () with
+        match%lwt Database.find_doc ~db:"users" ~id () with
         | Ok (Json_response json) ->
           begin
             match Json.member "books" json with
@@ -133,6 +133,8 @@ let tree_view_handler request =
     end
   | Ok _ -> failwith "Unreachable"
   | Error exn -> View.Exn.from_exn request exn
+
+(** TODO: Mark as read handler *)
 
 (** Render the tree list view page *)
 let trees_list_view_handler request =
@@ -245,7 +247,6 @@ let login_handler request =
       in
       match%lwt Database.find_docs ~db:"users" ~mango () with
       | Ok (Json_response json) ->
-        let () = Dream.log "%s" @@ Json.pp json in
         begin
           match Json.member "docs" json with
           | Ok (`List [

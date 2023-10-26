@@ -21,11 +21,16 @@ let render
           ~title:""
           ~content:[]
           ~footer:
-            [ button
-                ~a:[ a_class [ "btn"; "btn-success"]
-                   ; a_button_type `Button
+            [ form
+                ~a:[ a_action (Printf.sprintf "/trees/%s/read" id)
+                   ; a_method `Post
                    ]
-                [ txt "Mark as Read" ]
+                [ button
+                    ~a:[ a_class [ "btn"; "btn-success"]
+                       ; a_button_type `Submit
+                       ]
+                    [ txt "Mark as Read" ]
+                ]
             ]
       ]
       request

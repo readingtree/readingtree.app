@@ -1,12 +1,13 @@
 const getReadBooks = () => {
-    
+    return READ_BOOKS ?? [];
 }
 
 const showModal = (t, network) => {
     const rawElem = document.getElementById('book-modal');
     rawElem.addEventListener('hide.bs.modal', _ => {
-        rawElem.querySelector('.modal-title').innerHTML = "";
-        rawElem.querySelector('.modal-body').innerHTML = "";
+        rawElem.querySelector('.modal-title').innerHTML = '';
+        rawElem.querySelector('.modal-body').innerHTML = '';
+        rawElem.querySelector('.modal-footer').innerHTML = '<button class="btn btn-success" type="button">Mark as Read</button>';
         network.selectNodes([]); // Hack to deselect the node.
     });
 
@@ -18,7 +19,7 @@ const showModal = (t, network) => {
         image.src = t['image'];
         image.style = 'width: 220px; height: 309px; display: block; margin-left: auto; margin-right: auto;'
         image.classList.add('my-3');
-        root.appendChild(image);
+        root.appendChild(image); 
 
         for (const key of ['Author', 'ISBN']) {
             const div = document.createElement('div');
@@ -36,16 +37,31 @@ const showModal = (t, network) => {
     const bodyElem = rawElem.querySelector('.modal-body');
     generateInnerHtml(bodyElem);
 
+    if (getReadBooks().includes(t.tree._id)) {
+        const footer = rawElem.querySelector('.modal-footer');
+        footer.innerHTML = '';
+        const status = document.createElement('small');
+        status.appendChild(document.createTextNode(`You've already read this book. Good work!`));
+        status.classList.add('text-muted');
+        footer.appendChild(status);
+    } else {
+        
+    }
+
     modalElem.toggle();
 };
 
-const makeNodes = (t, edges) => {
-    const tos = edges.map(e => e.to);
-    const froms = edges.map(e => e.from);
-    const inverseRoots = froms.filter(x => !tos.includes(x));
+const makeNodes = (t) => {
+    const tos = t.edges.map(({to}) => to);
+    const froms = t.edges.map(({from}) => from);
+    const readBooks = getReadBooks();
+    const roots =
+          t.edges.reduce((acc, {to, from}) => {
+              acc[to] = from;
+              return acc;
+          }, {});
 
     return [t, ...t.children].map(n => {
-        // TODO: Also if we've read this already.
         const treeNode = {
             id: n._id,
             _label: n.book.title,
@@ -56,7 +72,10 @@ const makeNodes = (t, edges) => {
             color: {},
             interaction: {}
         };
-        if (inverseRoots.includes(n._id)) {
+        if (readBooks.includes(n._id)) {
+            treeNode.color.border = '#0D0' ;
+            treeNode.unlocked = true;
+        } else if (readBooks.includes(roots[n._id]) || !tos.includes(n._id)) {
             treeNode.color.border = '#D1D1D1';
             treeNode.unlocked = true;
         } else {
@@ -72,7 +91,7 @@ const makeNodes = (t, edges) => {
 const drawTree = (t) => {
     const treeContainer = document.getElementById('tree');
     const edges = new vis.DataSet(t.edges);
-    const nodes = new vis.DataSet(Object.values(makeNodes(t, edges)));
+    const nodes = new vis.DataSet(makeNodes(t));
     const data = {
         nodes,
         edges

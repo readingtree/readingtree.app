@@ -43,8 +43,8 @@ let layout
         ]
         @
         (List.map (fun s -> script ~a:[ a_src s ] (txt "")) scripts)
-        @ [ script ~a:[ a_src ("/static/js/" ^ init) ] (txt "")
-          ; script (txt ("const READ_BOOKS = " ^ (Json.to_string (`List read_books))))
-          ]
+        @ [ Unsafe.data @@ (Printf.sprintf "<script>const READ_BOOKS = %s</script>" (Json.to_string (`List read_books)))
+          ; script ~a:[ a_src ("/static/js/" ^ init) ] (txt "")
+        ]
        )
     )
