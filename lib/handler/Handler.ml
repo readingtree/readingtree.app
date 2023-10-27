@@ -146,10 +146,14 @@ let mark_as_read_handler request =
   match%lwt Database.find_doc ~db:"readingtree" ~id:tree_id () with
   | Ok tree ->
     let has_book =
-      match Json.member "children" tree with
-      | Ok (`List books) ->
+      match ( Json.member "children" tree
+            , Json.member "_id" tree )
+      with
+      | Ok (`List books), Ok(`String _ as _id) ->
+        let books = _id :: (List.map (fun book -> Yojson.Safe.Util.member "_id" book) books) in
+        let () = List.iter (function `String s -> print_endline s | t -> print_endline @@ Json.pp t) books in
         Option.is_some @@ List.find_opt (function `String s -> s = book_id | _ -> false) books
-      | Ok _ | Error _ -> false
+      | _ -> false
     in
     if not has_book then Dream.html ~status:`Not_Found @@ View.NotFound.render request
     else
@@ -176,13 +180,14 @@ let mark_as_read_handler request =
                         let new_read_time = `String (Ptime_clock.now () |> Ptime.to_float_s |> Float.to_string) in
                         let to_save = (`Assoc (("books", new_books) ::
                                                ("lastReadTime", new_read_time) ::
-                                               (List.filter (fun (k, _) -> k = "books" || k = "lastReadTime") json)))
+                                               (List.filter (fun (k, _) -> not (k = "books" || k = "lastReadTime")) json)))
                         in
+                        print_endline @@ Json.pp to_save;
                         begin
                           match%lwt
                             Database.save_doc
                               ~db:"users"
-                              ~id:tree_id
+                              ~id:user_id
                               ~doc:to_save
                               ()
                           with

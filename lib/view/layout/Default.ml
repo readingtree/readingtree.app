@@ -7,36 +7,7 @@ let layout
       ?(scripts=[])
       _request =
   let open Tyxml.Html in
-  let flashes =
-    Dream.flash_messages _request
-    |> List.map (fun (t, text) ->
-        div
-          ~a:[ a_class
-                 [ "flex"
-                 ; "alert"
-                 ; "alert-" ^ t
-                 ; "alert-dismissable"
-                 ; "fade"
-                 ; "show"
-                 ; "justify-content-between"
-                 ; "position-fixed"
-                 ; "bottom-0"
-                 ; "end-0"
-                 ]
-             ; a_role [ "alert" ]
-             ]
-          [ txt text
-          ; button
-              ~a:[ a_button_type `Button
-                 ; a_class [ "btn-close" ]
-                 ; Unsafe.string_attrib "data-bs-dismiss" "alert"
-                 ; Unsafe.string_attrib "aria-label" "Close"
-                 ]
-              []
-          ]
-      )
-  in
-  html
+    html
     ~a:[ a_lang "en" ]
     (head
        (title (txt title_))
@@ -61,11 +32,10 @@ let layout
     (body
        ~a:[]
        ((if show_nav then [Partial.Nav.render _request] else []) @
-        [ div flashes
+        [ Partial.Flash.render _request
         ; div
             ~a:[ a_class [ "m-md-2"; "m-sm-1" ] ]
             body_
-        ; script ~a:[ a_src "/static/js/alert.js" ] (txt "")
         ; div @@ List.map (fun s -> script ~a:[ a_src s ] (txt "")) scripts
         ])
     )

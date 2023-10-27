@@ -2,12 +2,21 @@ const getReadBooks = () => {
     return READ_BOOKS ?? [];
 }
 
-const showModal = (t, network) => {
+const showModal = async (t, rootId, network) => {
     const rawElem = document.getElementById('book-modal');
+    const readForm = document.createElement('form');
+    readForm.method = 'POST';
+    readForm.action = `/trees/${rootId}/mark-read/${t.id}`;
+    const readButton = document.createElement('button');
+    readButton.classList.add('btn');
+    readButton.classList.add('btn-success');
+    readButton.type = 'submit';
+    readButton.innerHTML = 'Mark as Read';
+    readForm.appendChild(readButton);
     rawElem.addEventListener('hide.bs.modal', _ => {
         rawElem.querySelector('.modal-title').innerHTML = '';
         rawElem.querySelector('.modal-body').innerHTML = '';
-        rawElem.querySelector('.modal-footer').innerHTML = '<button class="btn btn-success" type="button">Mark as Read</button>';
+        rawElem.querySelector('.modal-footer').innerHTML = '';
         network.selectNodes([]); // Hack to deselect the node.
     });
 
@@ -37,15 +46,16 @@ const showModal = (t, network) => {
     const bodyElem = rawElem.querySelector('.modal-body');
     generateInnerHtml(bodyElem);
 
+    const footer = rawElem.querySelector('.modal-footer');
+    footer.innerHTML = '';
+
     if (getReadBooks().includes(t.tree._id)) {
-        const footer = rawElem.querySelector('.modal-footer');
-        footer.innerHTML = '';
         const status = document.createElement('small');
         status.appendChild(document.createTextNode(`You've already read this book. Good work!`));
         status.classList.add('text-muted');
         footer.appendChild(status);
     } else {
-        
+        footer.appendChild(readForm);
     }
 
     modalElem.toggle();
@@ -157,9 +167,8 @@ const drawTree = (t) => {
         if (!clickedNode) return;
 
         if (clickedNode.unlocked) {
-            showModal(clickedNode, network);
+            showModal(clickedNode, t._id, network);
         }
-
     });
 
     network.on('click', ({ nodes, edges }) => {

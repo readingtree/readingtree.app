@@ -36,7 +36,8 @@ let layout
     )
     (body
        ~a:[ a_class [ "min-vh-100"; "min-vw-100" ] ]
-       ([ Partial.Nav.render _request
+       ([ Partial.Flash.render _request
+        ; Partial.Nav.render _request
         ; div
             ~a:[ a_class [ "w-100"; "h-100"; "m-md-2"; "m-sm-1" ]; a_id "app" ]
             body_
