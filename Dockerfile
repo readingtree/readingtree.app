@@ -1,4 +1,4 @@
-FROM ocaml/opam:debian-12-ocaml-4.14 AS build
+FROM ocaml/opam:debian-12-ocaml-5.1 AS build
 RUN sudo apt-get update -y
 RUN sudo apt-get install -y libssl-dev libev-dev libgmp-dev pkg-config libffi-dev libc-bin
 WORKDIR /readingtree
