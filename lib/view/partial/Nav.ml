@@ -9,7 +9,7 @@ let render request =
           [ a ~a:[ a_href "/trees" ] [ txt "Trees" ] ]
       ; li
           ~a:[ a_class [ "nav-item"; "ms-md-2" ] ]
-          [ a ~a:[ a_href ("/profile/" ^ user_id) ] [ txt "profile" ] ]
+          [ a ~a:[ a_href ("/profile/" ^ user_id) ] [ txt "Profile" ] ]
       ; li
           ~a:[ a_class [ "nav-item"; "ms-md-2" ] ]
           [ a ~a:[ a_href "/logout" ] [ txt "Logout" ] ]
