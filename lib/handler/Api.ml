@@ -12,8 +12,7 @@
 let get_tree_by_id_handler request =
   let id = Dream.param request "id" in
   match%lwt Database.find_doc ~db:"readingtree" ~id () with
-  | Ok (Json_response json) -> Dream.json @@ Json.to_string json
-  | Ok (Text_response _) -> failwith "Unreachable"
+  | Ok json -> Dream.json @@ Json.to_string json
   | Error exn -> View.Exn.from_exn request exn
 
 (** Get a list of trees, paginated by ?size and ?page. *)
@@ -36,6 +35,5 @@ let get_trees_paginated_handler request =
     )
   in
   match%lwt Database.find_docs ~db:"readingtree" ~mango () with
-  | Ok (Json_response json) -> Dream.json @@ Json.to_string json
+  | Ok json -> Dream.json @@ Json.to_string json
   | Error exn -> View.Exn.from_exn request exn
-  | _ -> Dream.empty `Bad_Request

@@ -1,10 +1,5 @@
 open Lwt.Syntax
 
-type encoding_type = Json | Text
-type couch_response =
-  | Json_response of Yojson.Safe.t
-  | Text_response of string
-
 let ( >|= ) = Result.bind
 let ( >>|= ) = fun a b ->
   match a with
@@ -36,20 +31,15 @@ let make_request =
   Http.request
     ~headers:standard_headers
 
-let encode_response ~(encoding : encoding_type) response =
+let encode_response response =
   let status = Hyper.status response in
   let+ body = Hyper.body response in
   match status with
   | _s when Hyper.is_successful _s ->
     begin
-      match encoding with
-      | Json ->
-        begin
-          match Json.from_string body with
-          | Ok json -> Ok (Json_response json)
-          | Error e -> Error (Encoding_error (Printexc.to_string e))
-        end
-      | Text -> Ok (Text_response body)
+      match Json.from_string body with
+      | Ok json -> Ok json
+      | Error e -> Error (Encoding_error (Printexc.to_string e))
     end
   | `Not_Found -> Error (Not_found)
   | _ ->  Error (Request_error ((Hyper.status_to_string status) ^ " " ^ body))
@@ -63,13 +53,13 @@ let create_view ~db ~name ~json () =
       (db_uri ^ "/" ^ db ^ "/_design/my_ddoc")
   in
   let* response = Http.run request in
-  response >>|= encode_response ~encoding:Json
+  response >>|= encode_response
 
 (** Create a database. This action is idempotent. *)
 let create_db ~name () =
   let request = make_request ~meth:`PUT (db_uri ^ "/" ^ name) in
   let* response = Http.run request in
-  response >>|= encode_response ~encoding:Json
+  response >>|= encode_response
 
 let find_doc ~db ~id () =
   let request =
@@ -79,7 +69,7 @@ let find_doc ~db ~id () =
       db_uri
   in
   let* response = Http.run request in
-  response >>|= encode_response ~encoding:Json
+  response >>|= encode_response
 
 let find_docs ~db ?paginate ?(mango=`Assoc []) () =
   let mango =
@@ -99,7 +89,7 @@ let find_docs ~db ?paginate ?(mango=`Assoc []) () =
       (db_uri ^ "/" ^ db ^ "/_find")
   in
   let* response = Http.run request in
-  response >>|= encode_response ~encoding:Json
+  response >>|= encode_response
 
 (** Find all documents in a database, forcibly paginated. See /_all_docs in the CouchDB docs. *)
 let find_all_docs ~db ~paginate:(page, size) () =
@@ -109,9 +99,9 @@ let find_all_docs ~db ~paginate:(page, size) () =
       (db_uri ^ "/" ^ db ^ "/_all_docs" ^ (Printf.sprintf "?limit=%d&skip=%d&include_docs=true" page size))
   in
   let* response = Http.run request in
-  let+ encoded_response = response >>|= encode_response ~encoding:Json in
-  match encoded_response with
-  | Ok (Json_response json) ->
+  let+ json = response >>|= encode_response in
+  match json with
+  | Ok json ->
     begin
       match Json.member "rows" json with
       | Ok (`List rows) ->
@@ -120,7 +110,7 @@ let find_all_docs ~db ~paginate:(page, size) () =
             (fun row -> match Json.member "doc" row with Ok json -> Some json | _ -> None)
             rows
         in
-        Ok (Json_response (`Assoc ([("docs", `List docs)])))
+        Ok (`Assoc ([("docs", `List docs)]))
       | Ok _ -> Error (Failure "Something went wrong encoding in find_all_docs.")
       | Error _ as e -> e
     end
@@ -136,7 +126,7 @@ let save_doc ~db ~id ~doc () =
       (db_uri ^ "/" ^ db ^ "/" ^ id)
   in
   let* response = Http.run request in
-  response >>|= encode_response ~encoding:Json
+  response >>|= encode_response
 
 (** Creates a new document, with a random UUID.
     This simply just wraps [save_doc] and handles ID generation for you. *)
@@ -158,4 +148,4 @@ let delete_doc ?rev ~db ~id () =
       (db_uri ^ "/" ^ db ^ "/" ^ id ^ query)
   in
   let* response = Http.run request in
-  response >>|= encode_response ~encoding:Json
+  response >>|= encode_response

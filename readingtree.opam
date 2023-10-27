@@ -23,6 +23,7 @@ depends: [
   "hyper"
   "tyxml"
   "re2"
+  "ptime"
   "odoc" {with-doc}
 ]
 build: [

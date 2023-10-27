@@ -21,7 +21,7 @@ let add_edge_to_tree_handler request =
     begin
       let new_edge = `Assoc [("to", `String _to); ("from", `String from)] in
       match%lwt Database.find_doc ~db:"readingtree" ~id:tree_id () with
-      | Ok (Json_response ((`Assoc doc) as json)) ->
+      | Ok ((`Assoc doc) as json) ->
         begin
           match Json.member "edges" json with
           | Ok (`List edges) ->
@@ -54,42 +54,47 @@ let add_book_to_tree_handler request =
         ; "title", title
         ]
     ->
-      let child_book = `Assoc
-          [ ("title", `String title)
-          ; ("cover", `String cover)
-          ; ("isbn", `String isbn)
-          ; ("author", `String author)
-          ]
-      in
-      let child = `Assoc
-          [ ("_id", `String _id)
-          ; ("description", `String title)
-          ; ("typ", `String "tree")
-          ; ("book", child_book)
-          ]
-      in
-      begin
-        match%lwt Database.find_doc ~db:"readingtree" ~id:tree_id () with
-        | Ok (Json_response (`Assoc doc as json)) ->
-          begin
-            match Json.member "children" json with
-            | Ok (`List children) ->
-              begin
-                let to_save = (`Assoc (("children", `List (child :: children)) :: (List.filter (fun (k, _) -> k <> "children") doc))) in
-                match%lwt Database.save_doc
+    let child_book = `Assoc
+        [ ("title", `String title)
+        ; ("cover", `String cover)
+        ; ("isbn", `String isbn)
+        ; ("author", `String author)
+        ]
+    in
+    let child = `Assoc
+        [ ("_id", `String _id)
+        ; ("description", `String title)
+        ; ("typ", `String "tree")
+        ; ("book", child_book)
+        ]
+    in
+    begin
+      match%lwt Database.find_doc ~db:"readingtree" ~id:tree_id () with
+      | Ok (`Assoc doc as json) ->
+        begin
+          match Json.member "children" json with
+          | Ok (`List children) ->
+            begin
+              let to_save =
+                (`Assoc
+                   (("children", `List (child :: children)) ::
+                    (List.filter (fun (k, _) -> k <> "children") doc)))
+              in
+              match%lwt
+                Database.save_doc
                   ~db:"readingtree"
                   ~id:tree_id
                   ~doc:to_save
                   ()
-                with
-                | Ok (_) -> Dream.redirect request ("/trees/" ^ tree_id)
-                | Error exn -> View.Exn.from_exn request exn
-              end
-            | _ -> Dream.empty `Internal_Server_Error
-          end
-        | Ok _ -> View.Exn.from_exn request (Failure "Unknown error.")
-        | Error exn -> View.Exn.from_exn request exn
-      end
+              with
+              | Ok (_) -> Dream.redirect request ("/trees/" ^ tree_id)
+              | Error exn -> View.Exn.from_exn request exn
+            end
+          | _ -> Dream.empty `Internal_Server_Error
+        end
+      | Ok _ -> View.Exn.from_exn request (Failure "Unknown error.")
+      | Error exn -> View.Exn.from_exn request exn
+    end
   | _ ->
     Dream.html ~status:`Bad_Request
     @@ View.BadRequest.render request
@@ -107,7 +112,7 @@ let tree_view_handler request =
     | Some id ->
       begin
         match%lwt Database.find_doc ~db:"users" ~id () with
-        | Ok (Json_response json) ->
+        | Ok json ->
           begin
             match Json.member "books" json with
             | Ok (`List books) -> return books
@@ -118,7 +123,7 @@ let tree_view_handler request =
     | None -> return []
   in
   match tree with
-  | Ok (Json_response json) ->
+  | Ok json ->
     begin
       match Json.member "description" json with
       | Ok (`String description) ->
@@ -131,10 +136,90 @@ let tree_view_handler request =
       | Ok _ -> Dream.html ~status:`Not_Found @@ View.NotFound.render request
       | Error exn -> View.Exn.from_exn request exn
     end
-  | Ok _ -> failwith "Unreachable"
   | Error exn -> View.Exn.from_exn request exn
 
-(** TODO: Mark as read handler *)
+(** Mark as read handler. TODO: Make a little nicer later. *)
+let mark_as_read_handler request =
+  let book_id = Dream.param request "book_id" in
+  let tree_id = Dream.param request "tree_id" in
+  let redirect_target = ("/trees/" ^ tree_id) in
+  match%lwt Database.find_doc ~db:"readingtree" ~id:tree_id () with
+  | Ok tree ->
+    let has_book =
+      match Json.member "children" tree with
+      | Ok (`List books) ->
+        Option.is_some @@ List.find_opt (function `String s -> s = book_id | _ -> false) books
+      | Ok _ | Error _ -> false
+    in
+    if not has_book then Dream.html ~status:`Not_Found @@ View.NotFound.render request
+    else
+      begin
+        match Dream.session_field request "user" with
+        | Some user_id ->
+          begin
+            let* user = Database.find_doc ~db:"users" ~id:user_id () in
+            match user with
+            | Ok user ->
+              begin
+                let is_allowed_to_read time =
+                  let now = Ptime_clock.now () in
+                  let span = time |> Ptime.diff now |> Ptime.Span.to_float_s in
+                  span > 86400.00
+                in
+                let read_book book_id user_id =
+                  match%lwt Database.find_doc ~db:"users" ~id:user_id () with
+                  | Ok (`Assoc json as user) ->
+                    begin
+                      match Json.member "books" user with
+                      | Ok (`List books) ->
+                        let new_books = `List ((`String book_id) :: books) in
+                        let new_read_time = `String (Ptime_clock.now () |> Ptime.to_float_s |> Float.to_string) in
+                        let to_save = (`Assoc (("books", new_books) ::
+                                               ("lastReadTime", new_read_time) ::
+                                               (List.filter (fun (k, _) -> k = "books" || k = "lastReadTime") json)))
+                        in
+                        begin
+                          match%lwt
+                            Database.save_doc
+                              ~db:"users"
+                              ~id:tree_id
+                              ~doc:to_save
+                              ()
+                          with
+                          | Ok _ -> Dream.redirect request redirect_target
+                          | Error exn -> View.Exn.from_exn request exn
+                        end
+                      | Ok _ -> Dream.html ~status:`Bad_Request @@ View.BadRequest.render request
+                      | Error exn -> View.Exn.from_exn request exn
+                    end
+                  | Ok _ -> View.Exn.from_exn request (Failure "Internal Server Error")
+                  | Error exn -> View.Exn.from_exn request exn
+                in
+                let can_read =
+                  begin
+                    match Json.member "lastReadTime" user with
+                    | Ok `Null -> Ok true
+                    | Ok `String float_time ->
+                      begin
+                        match Ptime.of_float_s (Float.of_string float_time) with
+                        | Some time -> Ok (is_allowed_to_read time)
+                        | None -> Ok false
+                      end
+                    | Ok _ | Error _ -> Error false
+                  end
+                in
+                match can_read with
+                | Ok true -> read_book book_id user_id
+                | Ok false ->
+                  let () = Dream.add_flash_message request "danger" "You've already read a book in the last 24 hours." in
+                  Dream.redirect request redirect_target
+                | Error _ -> View.Exn.from_exn request (Failure "Something went really wrong.")
+              end
+            | Error exn -> View.Exn.from_exn request exn
+          end
+        | None -> Dream.redirect request "/login"
+      end
+  | Error exn -> View.Exn.from_exn request exn
 
 (** Render the tree list view page *)
 let trees_list_view_handler request =
@@ -144,7 +229,7 @@ let trees_list_view_handler request =
               ~paginate:(page, size)
               ()
   with
-  | Ok (Json_response (json)) ->
+  | Ok json ->
     begin
       match Json.member "docs" json with
       | Ok (`List trees) ->
@@ -165,7 +250,6 @@ let trees_list_view_handler request =
       | Ok _ -> failwith "Unreachable"
       | Error exn -> View.Exn.from_exn request exn
     end
-  | Ok (Text_response _) -> failwith "Unreachable"
   | Error exn -> View.Exn.from_exn request exn
 
 (** Render the signup page *)
@@ -175,10 +259,10 @@ let signup_view_handler request = Dream.html @@ View.Signup.render request
 let signup_handler request =
   match%lwt Dream.form ~csrf:true request with
   | `Ok [ "email", email
-	      ; "name", name
-	      ; "password", password
-	      ; "password_confirm", confirm
-	      ] ->
+	    ; "name", name
+	    ; "password", password
+	    ; "password_confirm", confirm
+	    ] ->
     begin
       match Validation.validate_sign_up ~name ~email ~password ~confirm () with
       | [] ->
@@ -246,7 +330,7 @@ let login_handler request =
           ]
       in
       match%lwt Database.find_docs ~db:"users" ~mango () with
-      | Ok (Json_response json) ->
+      | Ok json ->
         begin
           match Json.member "docs" json with
           | Ok (`List [
@@ -267,7 +351,6 @@ let login_handler request =
           | Ok _ -> failwith "Unreachable"
           | Error exn -> View.Exn.from_exn request exn
         end
-      | Ok _ -> failwith "Unreachable"
       | Error exn -> View.Exn.from_exn request exn
     end
   | `Wrong_session _ | `Expired _ -> Dream.redirect request "/login"

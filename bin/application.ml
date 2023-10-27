@@ -33,6 +33,7 @@ let () =
         ; D.post "/:id/edges" @@ Middleware.Auth.requires_role ~role:"admin" Handler.add_edge_to_tree_handler
         ; D.get "" Handler.trees_list_view_handler
         ; D.get "/" Handler.trees_list_view_handler
+        ; D.post "/:tree_id/mark-read/:book_id" @@ Middleware.Auth.redirect_authenticated ~location:"/login" Handler.mark_as_read_handler
         ]
     ; D.any "/logout" (fun request -> Middleware.Auth.redirect_unauthenticated ~location:"/" Handler.logout_handler request )
     ; D.scope "/" [ Middleware.Auth.redirect_authenticated ~location:"/" ]

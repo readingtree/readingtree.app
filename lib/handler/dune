@@ -9,6 +9,8 @@
    lwt
    dream
    digestif
-   ulid)
+   ulid
+   ptime
+   ptime.clock.os)
  (preprocess
   (pps lwt_ppx)))
