@@ -368,6 +368,27 @@ let logout_handler request =
   let* () = Dream.invalidate_session request in
   Dream.redirect request "/login"
 
-let privacy_policy_handler request = Dream.html @@ View.PrivacyPolicy.render request
+(** Profile handler *)
+let profile_view_handler request =
+  let id = Dream.param request "id" in
+  match%lwt Database.find_doc ~db:"users" ~id () with
+  | Ok (`Assoc (
+      ("_id", `String _) ::
+      ("_rev", `String _) ::
+      ("books", `List books) ::
+      ("lastReadTime", `String last_read_time) ::
+      ("name", `String name) :: _ ))
+    ->
+    Dream.html @@
+    View.Profile.render
+      ~user_id:id
+      ~num_books:(List.length books)
+      ~last_read_time
+      ~name
+      request
+  | Ok j -> print_endline (Json.pp j); View.Exn.from_exn request (Failure "Something went wrong.")
+  | Error exn -> View.Exn.from_exn request exn
 
-let terms_of_service_handler request = Dream.html @@ View.TermsOfService.render request
+let privacy_policy_view_handler request = Dream.html @@ View.PrivacyPolicy.render request
+
+let terms_of_service_view_handler request = Dream.html @@ View.TermsOfService.render request
