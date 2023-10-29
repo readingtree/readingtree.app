@@ -29,7 +29,7 @@ let render
                 ; txt (": " ^ (string_of_int num_books))
                 ]
           ; (if not is_current_user then div []
-             else Partial.Change_password_form.render ~user_id ())
+             else Partial.Change_password_form.render ~user_id request)
           ]
       ]
       request

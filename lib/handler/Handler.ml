@@ -372,22 +372,58 @@ let logout_handler request =
 let profile_view_handler request =
   let id = Dream.param request "id" in
   match%lwt Database.find_doc ~db:"users" ~id () with
-  | Ok (`Assoc (
-      ("_id", `String _) ::
-      ("_rev", `String _) ::
-      ("books", `List books) ::
-      ("lastReadTime", `String last_read_time) ::
-      ("name", `String name) :: _ ))
+  | Ok user
     ->
+    let open Yojson.Safe.Util in
     Dream.html @@
     View.Profile.render
       ~user_id:id
-      ~num_books:(List.length books)
-      ~last_read_time
-      ~name
+      ~num_books:(user |> member "books" |> to_list |> List.length)
+      ~last_read_time:(user |> member "lastReadTime" |> to_string)
+      ~name:(user |> member "name" |> to_string)
       request
-  | Ok j -> print_endline (Json.pp j); View.Exn.from_exn request (Failure "Something went wrong.")
   | Error exn -> View.Exn.from_exn request exn
+
+let change_password_handler request =
+  let user_id = Dream.param request "id" in
+  let logged_in_user_id = Option.get @@ Dream.session_field request "user" in
+  let redirect_target = ("/profile/" ^ user_id) in
+  if user_id = logged_in_user_id then
+    begin
+      match%lwt Dream.form ~csrf:true request with
+      | `Ok
+          [ "confirm-password", confirm
+          ; "password", password
+          ]
+        ->
+        let is_password_valid = Validation.validate_password ~password () in
+        if is_password_valid && (password = confirm) then
+          begin
+            match%lwt Database.find_doc ~db:"users" ~id:user_id () with
+            | Ok (`Assoc user) ->
+              let hash = Util.Hash.hash_string password in
+              let to_save = `Assoc (
+                  ("password", `String hash) :: (List.filter (fun (k, _) -> k <> "password") user)
+                )
+              in
+              begin
+                match%lwt Database.save_doc ~db:"users" ~id:user_id ~doc:to_save () with
+                | Ok _ -> Dream.redirect request redirect_target
+                | Error exn -> View.Exn.from_exn request exn
+              end
+            | Ok _ -> failwith "Unreachable"
+            | Error exn -> View.Exn.from_exn request exn
+          end
+        else
+          let () = Dream.add_flash_message request "danger" "Your password is invalid." in
+          Dream.redirect request redirect_target
+      | `Wrong_session _ | `Expired _ -> Dream.redirect request "/login"
+      | _ ->
+        Dream.html ~status:`Bad_Request
+        @@ View.BadRequest.render request
+    end
+  else
+    Dream.html @@ View.BadRequest.render request
 
 let privacy_policy_view_handler request = Dream.html @@ View.PrivacyPolicy.render request
 

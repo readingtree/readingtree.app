@@ -48,7 +48,7 @@ let () =
         ]
     ; D.scope "/profile" []
         [ D.get "/:id" @@ Handler.profile_view_handler
-        ; D.post "/:id/change-password" @@ (fun _ -> D.html "TODO")
+        ; D.post "/:id/change-password" @@ Handler.change_password_handler
         ]
     ; D.any "/privacy" @@ Handler.privacy_policy_view_handler
     ; D.any "/tos" @@ Handler.terms_of_service_view_handler
